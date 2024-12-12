@@ -52,7 +52,9 @@ public class EmployeeController {
 
     @PostMapping("/task/comment")
     public ResponseEntity<?> creatComment(@RequestParam Long taskId,@RequestParam Long postedBy, @RequestBody String content) {
+        System.out.println("running createCommit method in EmployeeController ");
         CommentDTO creatCommentdtO = employeeService.createComment(taskId, postedBy, content);
+        System.out.println("chack createCommentdto:"+creatCommentdtO);
         if (creatCommentdtO == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         return ResponseEntity.status(HttpStatus.OK).body(creatCommentdtO);
 
