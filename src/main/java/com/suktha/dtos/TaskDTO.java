@@ -2,6 +2,8 @@ package com.suktha.dtos;
 
 import com.suktha.enums.TaskStatus;
 import lombok.*;
+
+import java.time.LocalDate;
 import java.util.Date;
 
 @NoArgsConstructor
@@ -12,13 +14,21 @@ public class TaskDTO {
 
     private String title;
 
-    private Date dueDate;
+    private LocalDate dueDate;
 
     private String description;
 
     private String priority;
 
     private TaskStatus taskStatus;
+
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
 
     private Long employeeId;
 
@@ -33,13 +43,7 @@ public class TaskDTO {
         this.description = description;
     }
 
-    public Date getDueDate() {
-        return dueDate;
-    }
 
-    public void setDueDate(Date dueDate) {
-        this.dueDate = dueDate;
-    }
 
     public Long getEmployeeId() {
         return employeeId;

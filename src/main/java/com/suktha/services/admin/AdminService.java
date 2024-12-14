@@ -3,9 +3,13 @@ package com.suktha.services.admin;
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
 import com.suktha.dtos.UserDTO;
+import com.suktha.entity.Task;
+import com.suktha.enums.TaskStatus;
 import org.springframework.stereotype.Service;
 
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -21,9 +25,8 @@ public interface AdminService {
 
     void deleteTask(Long id);
 
-    List<TaskDTO> searchTaskByTitle(String title);
+   List<TaskDTO> searchTaskByTitle(String title);
 
-  //  List<TaskDTO> searchTaskByEmployeName(String priority);
 
     TaskDTO updateTask(TaskDTO taskDto, Long id);
 
@@ -31,4 +34,6 @@ public interface AdminService {
 
      List<CommentDTO> getCommentsByTask(Long taskId);
 
+    // New method for filtering tasks
+    List<TaskDTO> filterTasks(String priority, String title,LocalDate dueDate);
 }

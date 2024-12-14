@@ -15,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -86,12 +87,6 @@ public class AdminServiceImplement implements AdminService {
         return taskRepository.findAllBytitleContaining(title).stream().map(Task::getTaskDTO).collect(Collectors.toList());
     }
 
-//    @Override
-//    public List<TaskDTO> searchTaskByEmployeName(String priority) {
-//        System.out.println("running AdminServiceImplement ");
-//     //   taskRepository.fin
-//        return List.of();
-//    }
 
     @Override
     public TaskDTO updateTask(TaskDTO taskDto, Long id) {
@@ -137,6 +132,16 @@ public class AdminServiceImplement implements AdminService {
                 .collect(Collectors.toList());
 
     }
+
+
+    public List<TaskDTO> filterTasks( String priority, String title,LocalDate dueDate) {
+        List<Task> filteredTasks = this.taskRepository.findByFilters( priority, title,dueDate);
+
+        return filteredTasks.stream()
+                .map(Task::getTaskDTO) // Convert each Task entity to TaskDTO
+                .collect(Collectors.toList());
+    }
+
 
     private TaskStatus mapStringToTaskStatus(String taskStatus) {
         return switch (taskStatus) {

@@ -9,6 +9,7 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @NoArgsConstructor
@@ -22,7 +23,7 @@ public class Task {
 
     private String title;
 
-    private Date dueDate;
+    private LocalDate dueDate;
 
     private String priority;
 
@@ -34,11 +35,10 @@ public class Task {
     @JsonIgnore
     private User user;
 
-
     private TaskStatus taskStatus;
 
 
-    public TaskDTO getTaskDTO(){
+    public TaskDTO getTaskDTO(){   // canvart taskentity to taskDto methis this one
         TaskDTO taskDTO = new TaskDTO();
         taskDTO.setId(id);
         taskDTO.setTitle(title);
@@ -52,12 +52,11 @@ public class Task {
 
     }
 
-
-    public Date getDueDate() {
+    public LocalDate getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(Date dueDate) {
+    public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
 
