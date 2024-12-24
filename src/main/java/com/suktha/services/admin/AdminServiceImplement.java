@@ -133,15 +133,13 @@ public class AdminServiceImplement implements AdminService {
 
     }
 
-
-    public List<TaskDTO> filterTasks( String priority, String title,LocalDate dueDate) {
-        List<Task> filteredTasks = this.taskRepository.findByFilters( priority, title,dueDate);
-
+    public List<TaskDTO> filterTasks( String priority, String title,LocalDate dueDate,TaskStatus taskStatus,String employeeName) {
+        List<Task> filteredTasks = this.taskRepository.findByFilters(priority,title,dueDate,taskStatus,employeeName);
+        System.out.println("running filterTasks method in AdminServiceImplement class:"+filteredTasks);
         return filteredTasks.stream()
                 .map(Task::getTaskDTO) // Convert each Task entity to TaskDTO
                 .collect(Collectors.toList());
     }
-
 
     private TaskStatus mapStringToTaskStatus(String taskStatus) {
         return switch (taskStatus) {

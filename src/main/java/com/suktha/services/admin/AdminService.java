@@ -4,6 +4,7 @@ import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
 import com.suktha.dtos.UserDTO;
 import com.suktha.entity.Task;
+import com.suktha.entity.User;
 import com.suktha.enums.TaskStatus;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,6 @@ public interface AdminService {
 
    List<TaskDTO> searchTaskByTitle(String title);
 
-
     TaskDTO updateTask(TaskDTO taskDto, Long id);
 
     CommentDTO createComment(Long taskId, Long postedBy,String content);
@@ -35,5 +35,7 @@ public interface AdminService {
      List<CommentDTO> getCommentsByTask(Long taskId);
 
     // New method for filtering tasks
-    List<TaskDTO> filterTasks(String priority, String title,LocalDate dueDate);
+    List<TaskDTO> filterTasks(String priority, String title, LocalDate dueDate, TaskStatus taskStatus,String employeeName);
+
+
 }

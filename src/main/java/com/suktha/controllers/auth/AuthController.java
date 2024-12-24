@@ -1,5 +1,4 @@
 package com.suktha.controllers.auth;
-
 import com.suktha.dtos.AuthenticationRequest;
 import com.suktha.dtos.AuthenticationResponse;
 import com.suktha.dtos.SignupRequest;
@@ -59,7 +58,6 @@ public class AuthController {
 //        if (userDto == null)
 //            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 //        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
-
 
     @PostMapping("/login")
     public AuthenticationResponse login(@RequestBody AuthenticationRequest authenticationRequest) {

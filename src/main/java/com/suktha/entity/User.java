@@ -25,7 +25,6 @@ public class User implements UserDetails {
 
     private String password;
 
-
     private UserRole userRole;
 
     public String getEmail() {

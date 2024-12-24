@@ -76,7 +76,6 @@ public class Comment {
     }
 
     //canvarting entity to dto
-
     public CommentDTO getCommentDto(){
         CommentDTO commentDTO = new CommentDTO();
         commentDTO.setContent(content);

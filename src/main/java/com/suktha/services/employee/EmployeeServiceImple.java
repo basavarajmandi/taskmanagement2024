@@ -93,11 +93,12 @@ public class EmployeeServiceImple implements EmployeeService {
     public List<CommentDTO> getCommentsByTask(Long taskId) {
         return commentRepository.findAllByTaskId(taskId)
                 .stream()
-                .map(Comment::getCommentDto)// entity to dto canaverting
+                .map(Comment::getCommentDto)// entity to dto Canvarting
                 .collect(Collectors.toList());
     }
 
     private TaskStatus mapStringToTaskStatus(String taskStatus) {
+        System.out.println("running mapStringTo taskStatus method in EmployeeServiceImple");
         return switch (taskStatus) {
             case "PENDING" -> TaskStatus.PENDING;
             case "INPROGRESS" -> TaskStatus.INPROGRESS;

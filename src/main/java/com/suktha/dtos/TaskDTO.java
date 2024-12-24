@@ -22,14 +22,6 @@ public class TaskDTO {
 
     private TaskStatus taskStatus;
 
-    public LocalDate getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDate dueDate) {
-        this.dueDate = dueDate;
-    }
-
     private Long employeeId;
 
     private String employeeName;
@@ -43,6 +35,13 @@ public class TaskDTO {
         this.description = description;
     }
 
+    public LocalDate getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(LocalDate dueDate) {
+        this.dueDate = dueDate;
+    }
 
 
     public Long getEmployeeId() {
