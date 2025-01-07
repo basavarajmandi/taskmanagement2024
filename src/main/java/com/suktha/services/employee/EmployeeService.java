@@ -2,7 +2,10 @@ package com.suktha.services.employee;
 
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
+import com.suktha.entity.Task;
+import com.suktha.enums.TaskStatus;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface EmployeeService {
@@ -18,4 +21,6 @@ public interface EmployeeService {
 
     List<CommentDTO> getCommentsByTask(Long taskId);
 
+   // List<Task> getFilteredTasks(String title, TaskStatus taskStatus, String priority, LocalDate dueDate);
+   List<TaskDTO> getFilteredTasksByUserId(Long userid, String title, String priority, TaskStatus taskStatus, LocalDate dueDate);
 }

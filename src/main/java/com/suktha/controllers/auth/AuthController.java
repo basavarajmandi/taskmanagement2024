@@ -82,6 +82,7 @@ public class AuthController {
             response.setJwt(jwtToken);
             response.setUserRole(optionalUser.get().getUserRole());
             response.setUserId(optionalUser.get().getId());
+
         }
         return response;
     }

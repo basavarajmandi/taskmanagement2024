@@ -10,11 +10,8 @@ import lombok.ToString;
 public class AuthenticationResponse {
 
     private String jwt;
-
     private Long userId;
-
     private UserRole userRole;
-
 
     public String getJwt() {
         return jwt;

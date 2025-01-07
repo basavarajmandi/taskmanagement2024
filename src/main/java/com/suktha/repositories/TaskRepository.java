@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -17,6 +16,9 @@ public interface TaskRepository extends JpaRepository<Task,Long>{
 
     @Query("SELECT t.taskStatus, COUNT(t) FROM Task t GROUP BY t.taskStatus")
     List<Object[]> countTasksByStatus();
+
+
+
 
     List<Task> findAllBytitleContaining(String title);
 
@@ -36,7 +38,25 @@ public interface TaskRepository extends JpaRepository<Task,Long>{
                                  @Param("employeeName") String employeeName);
 
 
+//    List<Task> findByTitleContaining(String title);
+//    List<Task> findByTaskStatus(TaskStatus taskStatus);
+//    List<Task> findByPriority(String priority);
+//    List<Task> findByDueDate(LocalDate dueDate);
+    @Query("SELECT t FROM Task t JOIN t.user u WHERE t.user.id = :userid " +
+            "AND (:title IS NULL OR t.title LIKE %:title%) " +
+            "AND (:priority IS NULL OR t.priority = :priority) " +
+            "AND (:taskStatus IS NULL OR t.taskStatus = :taskStatus) " +
+            "AND (:dueDate IS NULL OR t.dueDate = :dueDate)")
+    List<Task> findFilteredTasks(
+            @Param("userid") Long userid,
+            @Param("title") String title,
+            @Param("priority") String priority,
+            @Param("taskStatus") TaskStatus taskStatus,
+            @Param("dueDate") LocalDate dueDate);
+
+}
 
 
 
-    }
+
+

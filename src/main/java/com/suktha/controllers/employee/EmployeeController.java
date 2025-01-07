@@ -2,12 +2,16 @@ package com.suktha.controllers.employee;
 
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
+import com.suktha.entity.Task;
+import com.suktha.enums.TaskStatus;
 import com.suktha.services.employee.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -17,12 +21,10 @@ public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
-
-//         @GetMapping("/tasks")
+    //         @GetMapping("/tasks")
 //        public ResponseEntity<List<TaskDTO>> getTaskByUserId() {
 //        return ResponseEntity.ok(employeeService.getTasksByUserId());
 //    }
-
 
     @GetMapping("/task/user/{userid}")
     public ResponseEntity<?> getTaskByUserId(@PathVariable() Long userid) {
@@ -31,7 +33,6 @@ public class EmployeeController {
         System.out.println("Task Fetched:"+task);
         return ResponseEntity.ok(task);
     }
-
 
     @PutMapping("/task/{id}/{status}")
     public ResponseEntity<?> updateTask(@PathVariable Long id, @PathVariable String status) {
@@ -59,11 +60,36 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.OK).body(creatCommentdtO);
 
     }
-
     @GetMapping("/task/{taskId}/comments")
     public ResponseEntity<?> getCommentsByTask(@PathVariable Long taskId){
     return ResponseEntity.ok(employeeService.getCommentsByTask(taskId));
     }
+//    @GetMapping("/filter")
+//    public ResponseEntity<List<Task>> getFilteredTaskss(
+//            @RequestParam(required = false) String title,
+//            @RequestParam(required = false) TaskStatus taskStatus,
+//            @RequestParam(required = false) String priority,
+//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
+//
+//        List<Task> tasks = employeeService.getFilteredTasks(title, taskStatus, priority, dueDate);
+//        return ResponseEntity.ok(tasks);
+//    }
 
+    @GetMapping("/tasks/user/{userid}")
+    public ResponseEntity<?> getFilteredTasksByUserIds(
+            @PathVariable Long userid,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) TaskStatus taskStatus,
+            @RequestParam(required = false) LocalDate dueDate) {
+
+        System.out.println("Fetching tasks for user Id: " + userid);
+
+        List<TaskDTO> task = employeeService.getFilteredTasksByUserId(userid, title, priority, taskStatus, dueDate);
+
+        System.out.println("Tasks Fetched: " + task);
+        return ResponseEntity.ok(task);
+
+    }
 
 }

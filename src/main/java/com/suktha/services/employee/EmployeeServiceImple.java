@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -97,6 +98,33 @@ public class EmployeeServiceImple implements EmployeeService {
                 .collect(Collectors.toList());
     }
 
+//    // Method to fetch filtered tasks based on title, taskStatus, priority, and dueDate
+//    public List<Task> getFilteredTasks(String title, TaskStatus taskStatus, String priority, LocalDate dueDate) {
+//        // Implement filtering logic based on the provided parameters
+//        if (title != null && !title.isEmpty()) {
+//            return taskRepository.findByTitleContaining(title);
+//        } else if (taskStatus != null) {
+//            return taskRepository.findByTaskStatus(taskStatus);
+//        } else if (priority != null && !priority.isEmpty()) {
+//            return taskRepository.findByPriority(priority);
+//        } else if (dueDate != null) {
+//            return taskRepository.findByDueDate(dueDate);
+//        }
+//        return taskRepository.findAll(); // Return all tasks if no filter is applied
+//    }
+
+
+    public List<TaskDTO> getFilteredTasksByUserId(Long userid, String title, String priority, TaskStatus taskStatus, LocalDate dueDate) {
+        // Get filtered tasks from the repository based on parameters
+        List<Task> tasks = taskRepository.findFilteredTasks(userid, title, priority, taskStatus, dueDate);
+
+        // Convert Task entities to TaskDTOs
+        List<TaskDTO> taskDTOs = tasks.stream()
+                .map(Task::getTaskDTO)  // Assuming Task has a method to convert to TaskDTO
+                .collect(Collectors.toList());
+
+        return taskDTOs;
+    }
     private TaskStatus mapStringToTaskStatus(String taskStatus) {
         System.out.println("running mapStringTo taskStatus method in EmployeeServiceImple");
         return switch (taskStatus) {

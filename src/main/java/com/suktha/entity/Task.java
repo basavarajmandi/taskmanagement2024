@@ -37,8 +37,8 @@ public class Task {
 
     private TaskStatus taskStatus;
 
-
-    public TaskDTO getTaskDTO(){   // canvart taskentity to taskDto methis this one
+    public TaskDTO getTaskDTO(){
+        // canvart taskentity to taskDto methis this one
         TaskDTO taskDTO = new TaskDTO();
         taskDTO.setId(id);
         taskDTO.setTitle(title);

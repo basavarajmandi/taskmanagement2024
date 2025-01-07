@@ -26,16 +26,15 @@ public interface AdminService {
 
     void deleteTask(Long id);
 
-   List<TaskDTO> searchTaskByTitle(String title);
+    List<TaskDTO> searchTaskByTitle(String title);
 
     TaskDTO updateTask(TaskDTO taskDto, Long id);
 
     CommentDTO createComment(Long taskId, Long postedBy,String content);
 
-     List<CommentDTO> getCommentsByTask(Long taskId);
+    List<CommentDTO> getCommentsByTask(Long taskId);
 
     // New method for filtering tasks
     List<TaskDTO> filterTasks(String priority, String title, LocalDate dueDate, TaskStatus taskStatus,String employeeName);
-
 
 }

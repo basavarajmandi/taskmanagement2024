@@ -1,7 +1,6 @@
 package com.suktha.controllers.admin;
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
-import com.suktha.entity.Task;
 import com.suktha.enums.TaskStatus;
 import com.suktha.services.admin.AdminService;
 import com.suktha.services.task.TaskService;
@@ -28,6 +27,18 @@ public class AdminController {
     @GetMapping("/users")
     public ResponseEntity<?> getUsers() {
         return ResponseEntity.ok(adminService.getUsers());
+    }
+
+
+
+    @GetMapping("/tasks/filter")
+    public List<TaskDTO> filterTasks(
+            @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) TaskStatus taskStatus,
+            @RequestParam(required = false) String employeeName,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE )LocalDate dueDate) {
+        return adminService.filterTasks(priority, title,dueDate,taskStatus,employeeName);
     }
 
 //    @GetMapping("/filter")
@@ -85,15 +96,7 @@ public class AdminController {
     public ResponseEntity<?> searchTaskbyTitle(@PathVariable String title){
         return ResponseEntity.ok(adminService.searchTaskByTitle(title));
     }
-    @GetMapping("/tasks/filter")
-    public List<TaskDTO> filterTasks(
-            @RequestParam(required = false) String priority,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) TaskStatus taskStatus,
-            @RequestParam(required = false) String employeeName,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE )LocalDate dueDate) {
-        return adminService.filterTasks(priority, title,dueDate,taskStatus,employeeName);
-    }
+
     @GetMapping("/tasks/overdue")
     public ResponseEntity<Long> getOverdueTaskCount() {
         long overdueTaskCount = taskService.getOverdueTaskCount();
@@ -104,6 +107,7 @@ public class AdminController {
         Map<String, Long> statusCounts = taskService.getTaskStatusCounts();
         return ResponseEntity.ok(statusCounts);
     }
+
 
 
 }
