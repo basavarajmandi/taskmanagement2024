@@ -38,7 +38,11 @@ public class EmployeeServiceImple implements EmployeeService {
 
     @Override
     public List<TaskDTO> getTasksByUserId(Long id) {
-        return taskRepository.findAllByUserId(id).stream().map(Task::getTaskDTO).collect(Collectors.toList());
+        return taskRepository.
+                findAllByUserId(id).
+                stream().
+                map(Task::getTaskDTO).
+                collect(Collectors.toList());
     }
 
 //    public List<TaskDTO> getTasksByUserId(){

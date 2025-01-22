@@ -40,7 +40,6 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     //chanage this method
-
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupRequest signupRequest) {
         if (authService.hasUserWithEmail(signupRequest.getEmail()))

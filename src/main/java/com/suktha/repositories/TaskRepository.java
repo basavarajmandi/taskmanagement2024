@@ -14,11 +14,14 @@ public interface TaskRepository extends JpaRepository<Task,Long>{
     @Query("SELECT COUNT(t) FROM Task t WHERE t.dueDate < CURRENT_DATE AND t.taskStatus != TaskStatus.COMPLETED")
     long countOverdueTasks();
 
+    @Query("SELECT t FROM Task t WHERE t.dueDate < CURRENT_DATE AND t.taskStatus != TaskStatus.COMPLETED")
+    List<Task> findAllOverdueTasks();
+
     @Query("SELECT t.taskStatus, COUNT(t) FROM Task t GROUP BY t.taskStatus")
     List<Object[]> countTasksByStatus();
 
-
-
+    @Query("SELECT COUNT(t) FROM Task t WHERE t.taskStatus=:status")
+   long countTasksByStatus( @Param("status") TaskStatus status);
 
     List<Task> findAllBytitleContaining(String title);
 
