@@ -5,6 +5,8 @@ import com.suktha.dtos.TaskDTO;
 import com.suktha.entity.Task;
 import com.suktha.enums.TaskStatus;
 import com.suktha.services.employee.EmployeeService;
+import com.suktha.services.task.TaskService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -13,7 +15,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/employee")
 @CrossOrigin(origins = "http://localhost:4200")
@@ -21,24 +25,24 @@ public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
-    //         @GetMapping("/tasks")
-//        public ResponseEntity<List<TaskDTO>> getTaskByUserId() {
-//        return ResponseEntity.ok(employeeService.getTasksByUserId());
-//    }
+
+    @Autowired
+    private TaskService taskService;
+
 
     @GetMapping("/task/user/{userid}")
     public ResponseEntity<?> getTaskByUserId(@PathVariable() Long userid) {
-        System.out.println("Fetching tasks for user Id:"+ userid);
+        log.info("Fetching tasks for user Id:" + userid);
         List<TaskDTO> task = employeeService.getTasksByUserId(userid);
-        System.out.println("Task Fetched:"+task);
+        log.info("Task Fetched:" + task);
         return ResponseEntity.ok(task);
     }
 
     @PutMapping("/task/{id}/{status}")
     public ResponseEntity<?> updateTask(@PathVariable Long id, @PathVariable String status) {
-        System.out.println("Updating Task ID: " + id + " with Status: " + status);
+        log.info("Updating Task ID: " + id + " with Status: " + status);
         TaskDTO updateTaskDto = employeeService.updateTask(id, status);
-        System.out.println("chack the updated task and status:"+ updateTaskDto);
+        log.info("chack the updated task and status:" + updateTaskDto);
 
         if (updateTaskDto == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("task updated failed!..");
@@ -47,33 +51,24 @@ public class EmployeeController {
     }
 
     @GetMapping("/task/{taskid}")
-    public ResponseEntity<?> getTaskByid (@PathVariable Long taskid) {
+    public ResponseEntity<?> getTaskByid(@PathVariable Long taskid) {
         return ResponseEntity.ok(employeeService.getTaskById(taskid));
     }
 
     @PostMapping("/task/comment")
-    public ResponseEntity<?> creatComment(@RequestParam Long taskId,@RequestParam Long postedBy, @RequestBody String content) {
-        System.out.println("running createCommit method in EmployeeController ");
+    public ResponseEntity<?> creatComment(@RequestParam Long taskId, @RequestParam Long postedBy, @RequestBody String content) {
+        log.info("running createCommit method in EmployeeController ");
         CommentDTO creatCommentdtO = employeeService.createComment(taskId, postedBy, content);
-        System.out.println("chack createCommentdto:"+creatCommentdtO);
+        log.info("chack createCommentdto:" + creatCommentdtO);
         if (creatCommentdtO == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         return ResponseEntity.status(HttpStatus.OK).body(creatCommentdtO);
 
     }
+
     @GetMapping("/task/{taskId}/comments")
-    public ResponseEntity<?> getCommentsByTask(@PathVariable Long taskId){
-    return ResponseEntity.ok(employeeService.getCommentsByTask(taskId));
+    public ResponseEntity<?> getCommentsByTask(@PathVariable Long taskId) {
+        return ResponseEntity.ok(employeeService.getCommentsByTask(taskId));
     }
-//    @GetMapping("/filter")
-//    public ResponseEntity<List<Task>> getFilteredTaskss(
-//            @RequestParam(required = false) String title,
-//            @RequestParam(required = false) TaskStatus taskStatus,
-//            @RequestParam(required = false) String priority,
-//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
-//
-//        List<Task> tasks = employeeService.getFilteredTasks(title, taskStatus, priority, dueDate);
-//        return ResponseEntity.ok(tasks);
-//    }
 
     @GetMapping("/tasks/user/{userid}")
     public ResponseEntity<?> getFilteredTasksByUserIds(
@@ -83,13 +78,29 @@ public class EmployeeController {
             @RequestParam(required = false) TaskStatus taskStatus,
             @RequestParam(required = false) LocalDate dueDate) {
 
-        System.out.println("Fetching tasks for user Id: " + userid);
-
+        log.info("Fetching tasks for user Id: " + userid);
         List<TaskDTO> task = employeeService.getFilteredTasksByUserId(userid, title, priority, taskStatus, dueDate);
 
-        System.out.println("Tasks Fetched: " + task);
+        log.info("Tasks Fetched: " + task);
         return ResponseEntity.ok(task);
-
     }
+
+    // Get employee dashboard
+    @GetMapping("/dashboard")
+    public ResponseEntity<Map<String, Object>> getEmployeeTaskStatus(@RequestParam Long employeeId) {
+        Map<String, Object> dashboard = taskService.getEmployeeDashboard(employeeId);
+
+        return ResponseEntity.ok(dashboard);
+    }
+
+    @GetMapping("/{employeeId}/task-counts-by-priority")
+    public ResponseEntity<Map<String, Integer>> getTaskCountsByPriority(@PathVariable Long employeeId) {
+        // Get task counts by priority for the given employeeId
+        Map<String, Integer> taskCountsByPriority = taskService.getTaskCountsByPriority(employeeId);
+       log.info("chack priority data:"+taskCountsByPriority);
+        // Return the result inside a ResponseEntity with a 200 OK status
+        return new ResponseEntity<>(taskCountsByPriority, HttpStatus.OK);
+    }
+
 
 }

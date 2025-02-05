@@ -7,13 +7,14 @@ import com.suktha.enums.UserRole;
 import com.suktha.repositories.UserRepository;
 import jakarta.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
-
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -31,9 +32,9 @@ public class AuthServiceImpl implements AuthService {
             user.setPassword(new BCryptPasswordEncoder().encode("admin"));
             user.setUserRole(UserRole.ADMIN);
             userRepository.save(user);
-            System.out.println("Admin account is created successfully");
+            log.info("Admin account is created successfully");
         } else {
-            System.out.println("Admin account is already exist!");
+            log.info("Admin account is already exist!");
         }
     }
 
@@ -44,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
         user.setName(signupRequest.getName());
         user.setUserRole(UserRole.EMPLOYEE);
         user.setPassword(new BCryptPasswordEncoder().encode(signupRequest.getPassword()));
-     return   userRepository.save(user).getUserDTO();
+        return userRepository.save(user).getUserDTO();
 
     }
 

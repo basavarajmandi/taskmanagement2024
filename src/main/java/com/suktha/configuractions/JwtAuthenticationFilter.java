@@ -7,7 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+@Slf4j
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -30,36 +31,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserService userService;
 
-
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,@NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        System.out.println("Authorization Header: " + authHeader);
+        log.info("Authorization Header: " + authHeader);
         final String jwt;
         final String userEmail;
-       // if (authHeader == null || !authHeader.startsWith("Bearer "))
-        if (StringUtils.isEmpty(authHeader) || !StringUtils.startsWith(authHeader,"Bearer ")) {
-            System.out.println("Authorization header is missing or does not start with 'Bearer '");
+        // if (authHeader == null || !authHeader.startsWith("Bearer "))
+        if (StringUtils.isEmpty(authHeader) || !StringUtils.startsWith(authHeader, "Bearer ")) {
+            log.info("Authorization header is missing or does not start with 'Bearer '");
             filterChain.doFilter(request, response);
             return;
         }
 // Extract JWT
         jwt = authHeader.substring(7);
-        System.out.println("jwt Token:{}:" + jwt);
+        log.info("jwt Token:{}:" + jwt);
 
         // Extract username
         userEmail = jwtUtil.extractUsername(jwt);
-        System.out.println("Extracted Username{}:" + userEmail);
+        log.info("Extracted Username{}:" + userEmail);
 
         if (StringUtils.isNoneEmpty(userEmail)
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userService.userDetailsService().loadUserByUsername(userEmail);
-            System.out.println("Loaded UserDetails: " + userDetails);
+            log.info("Loaded UserDetails: " + userDetails);
 
             // Validate the token
             boolean isValid = jwtUtil.isTokenValid(jwt, userDetails);
-            System.out.println("JWT is valid:  " + isValid);
+            log.info("JWT is valid:  " + isValid);
 
             if (isValid) {
 
@@ -69,7 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 securityContext.setAuthentication(authenticationToken);
                 SecurityContextHolder.setContext(securityContext);
-                System.out.println("JWT is valid, authentication set.");
+                log.info("JWT is valid, authentication set.");
             }
         }
         filterChain.doFilter(request, response);

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 public interface AuthService {
 
 
-   UserDTO signup(SignupRequest signupRequest);
+    UserDTO signup(SignupRequest signupRequest);
+
     boolean hasUserWithEmail(String email);
 }

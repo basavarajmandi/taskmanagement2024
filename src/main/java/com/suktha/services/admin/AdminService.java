@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public interface AdminService {
@@ -30,11 +31,12 @@ public interface AdminService {
 
     TaskDTO updateTask(TaskDTO taskDto, Long id);
 
-    CommentDTO createComment(Long taskId, Long postedBy,String content);
+    CommentDTO createComment(Long taskId, Long postedBy, String content);
 
     List<CommentDTO> getCommentsByTask(Long taskId);
 
     // New method for filtering tasks
-    List<TaskDTO> filterTasks(String priority, String title, LocalDate dueDate, TaskStatus taskStatus,String employeeName);
+    List<TaskDTO> filterTasks(String priority, String title, LocalDate dueDate, TaskStatus taskStatus, String employeeName);
+    //  Map<String, Object> getPaginatedTasks(int page, int size, String sortField, String sortDirection);
 
 }

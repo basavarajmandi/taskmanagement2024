@@ -1,4 +1,5 @@
 package com.suktha.controllers.auth;
+
 import com.suktha.dtos.AuthenticationRequest;
 import com.suktha.dtos.AuthenticationResponse;
 import com.suktha.dtos.SignupRequest;
@@ -70,7 +71,7 @@ public class AuthController {
             throw new BadCredentialsException("username or password is incorrrect");
         }
         //Load user details by email
-      final  UserDetails userDetails = userService.userDetailsService().loadUserByUsername(authenticationRequest.getEmail());
+        final UserDetails userDetails = userService.userDetailsService().loadUserByUsername(authenticationRequest.getEmail());
         Optional<User> optionalUser = userRepository.findFirstByEmail(authenticationRequest.getEmail());
 
         final String jwtToken = jwtUtil.generateToken(userDetails);

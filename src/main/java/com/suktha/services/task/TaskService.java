@@ -11,11 +11,23 @@ import java.util.Map;
 @Service
 public interface TaskService {
 
-     long getOverdueTaskCount();
+    List<Map<String, Object>> getAllTasksForExport();
 
-     List<TaskDTO> getAllOverdueTasks();
+    long getOverdueTaskCount();
 
-     Map<String, Long> getTaskStatusCounts();
+    List<TaskDTO> getAllOverdueTasks();
 
-     long getTaskCountByStatus(TaskStatus status);
+    Map<String, Long> getTaskStatusCounts();
+
+    long getTaskCountByStatus(TaskStatus status);
+
+    public List<Map<String, Object>> getTaskCountsByPriority();
+
+    Map<String, Object> getPaginatedTasks(int page, int size, String sortField, String sortDirection);
+
+
+    // Employee-specific methods
+    Map<String, Object> getEmployeeDashboard(Long employeeId);
+
+    Map<String, Integer> getTaskCountsByPriority(Long employeeId);
 }

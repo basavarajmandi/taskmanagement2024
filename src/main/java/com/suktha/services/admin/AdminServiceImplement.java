@@ -12,15 +12,16 @@ import com.suktha.repositories.CommentRepository;
 import com.suktha.repositories.TaskRepository;
 import com.suktha.repositories.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class AdminServiceImplement implements AdminService {
 
@@ -45,7 +46,7 @@ public class AdminServiceImplement implements AdminService {
     @Override
     public TaskDTO postTask(TaskDTO taskDto) {
         Optional<User> optionalUser = userRepository.findById(taskDto.getEmployeeId());
-        System.out.println("running postTask method in AdminServiceImplement class chack the method");
+        log.info("running postTask method in AdminServiceImplement class chack the method");
         if (optionalUser.isPresent()) {
             Task task = new Task();//task entity to dto sending
             task.setTitle(taskDto.getTitle());
@@ -61,7 +62,6 @@ public class AdminServiceImplement implements AdminService {
 
     @Override
     public List<TaskDTO> getTask() {
-
         return taskRepository
                 .findAll()
                 .stream()
@@ -91,9 +91,9 @@ public class AdminServiceImplement implements AdminService {
     @Override
     public TaskDTO updateTask(TaskDTO taskDto, Long id) {
         Optional<Task> optionalTask = taskRepository.findById(id);
-        System.out.println("running updatetask method in AdminServiceImplement clas :"+optionalTask);
+        log.info("running updatetask method in AdminServiceImplement clas :" + optionalTask);
         Optional<User> optionalUser = userRepository.findById(taskDto.getEmployeeId());
-        if  (optionalTask.isPresent() && optionalUser.isPresent()) {
+        if (optionalTask.isPresent() && optionalUser.isPresent()) {
             Task existingTask = optionalTask.get();
             existingTask.setTitle(taskDto.getTitle());
             existingTask.setDescription(taskDto.getDescription());
@@ -125,7 +125,7 @@ public class AdminServiceImplement implements AdminService {
 
     @Override
     public List<CommentDTO> getCommentsByTask(Long taskId) {
-        return   commentRepository
+        return commentRepository
                 .findAllByTaskId(taskId)
                 .stream()
                 .map(Comment::getCommentDto)//canavert entity to dto because i transfer data entity to controler geting
@@ -133,9 +133,9 @@ public class AdminServiceImplement implements AdminService {
 
     }
 
-    public List<TaskDTO> filterTasks( String priority, String title,LocalDate dueDate,TaskStatus taskStatus,String employeeName) {
-        List<Task> filteredTasks = this.taskRepository.findByFilters(priority,title,dueDate,taskStatus,employeeName);
-        System.out.println("running filterTasks method in AdminServiceImplement class:"+filteredTasks);
+    public List<TaskDTO> filterTasks(String priority, String title, LocalDate dueDate, TaskStatus taskStatus, String employeeName) {
+        List<Task> filteredTasks = this.taskRepository.findByFilters(priority, title, dueDate, taskStatus, employeeName);
+        log.info("running filterTasks method in AdminServiceImplement class:" + filteredTasks);
         return filteredTasks.stream()
                 .map(Task::getTaskDTO) // Convert each Task entity to TaskDTO
                 .collect(Collectors.toList());
@@ -148,7 +148,6 @@ public class AdminServiceImplement implements AdminService {
             case "COMPLETED" -> TaskStatus.COMPLETED;
             case "DEFERRED" -> TaskStatus.DEFERRED;
             default -> TaskStatus.CANCELLED;
-
         };
     }
 

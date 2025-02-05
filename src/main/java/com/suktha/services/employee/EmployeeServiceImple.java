@@ -11,6 +11,7 @@ import com.suktha.repositories.TaskRepository;
 import com.suktha.repositories.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +22,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class EmployeeServiceImple implements EmployeeService {
 
     @Autowired
     private TaskRepository taskRepository;
-
-//    @Autowired
-//    private JwtUtil jwtUtil;
 
     @Autowired
     private UserRepository userRepository;
@@ -45,19 +44,6 @@ public class EmployeeServiceImple implements EmployeeService {
                 collect(Collectors.toList());
     }
 
-//    public List<TaskDTO> getTasksByUserId(){
-//        User user = jwtUtil.getLoggedInUser();
-//        if(user!=null){
-//            return  taskRepository.findAllByUserId(user.getId())
-//          .stream()
-//          .sorted(Comparator.comparing(Task::getDueDate).reversed())
-//          .map(Task::getTaskDTO)
-//          .collect(Collectors.toList());
-//
-//        }
-//        throw  new EntityNotFoundException("UserNot Found");
-//
-//    }
 
     @Override
     public TaskDTO updateTask(Long id, String status) {
@@ -70,7 +56,7 @@ public class EmployeeServiceImple implements EmployeeService {
             existingTask.setTaskStatus(taskStatus);
             return taskRepository.save(existingTask).getTaskDTO();
         }
-      throw new EntityNotFoundException("Task not found");
+        throw new EntityNotFoundException("Task not found");
     }
 
     @Override
@@ -102,6 +88,43 @@ public class EmployeeServiceImple implements EmployeeService {
                 .collect(Collectors.toList());
     }
 
+    public List<TaskDTO> getFilteredTasksByUserId(Long userid, String title, String priority, TaskStatus taskStatus, LocalDate dueDate) {
+        // Get filtered tasks from the repository based on parameters
+        List<Task> tasks = taskRepository.findFilteredTasks(userid, title, priority, taskStatus, dueDate);
+
+        // Convert Task entities to TaskDTOs
+        List<TaskDTO> taskDTOs = tasks.stream()
+                .map(Task::getTaskDTO)  // Assuming Task has a method to convert to TaskDTO
+                .collect(Collectors.toList());
+
+        return taskDTOs;
+    }
+
+    private TaskStatus mapStringToTaskStatus(String taskStatus) {
+        log.info("running mapStringTo taskStatus method in EmployeeServiceImple");
+        return switch (taskStatus) {
+            case "PENDING" -> TaskStatus.PENDING;
+            case "INPROGRESS" -> TaskStatus.INPROGRESS;
+            case "COMPLETED" -> TaskStatus.COMPLETED;
+            case "DEFERRED" -> TaskStatus.DEFERRED;
+            default -> TaskStatus.CANCELLED;
+        };
+    }
+}
+//    public List<TaskDTO> getTasksByUserId(){
+//        User user = jwtUtil.getLoggedInUser();
+//        if(user!=null){
+//            return  taskRepository.findAllByUserId(user.getId())
+//          .stream()
+//          .sorted(Comparator.comparing(Task::getDueDate).reversed())
+//          .map(Task::getTaskDTO)
+//          .collect(Collectors.toList());
+//
+//        }
+//        throw  new EntityNotFoundException("UserNot Found");
+//
+//    }
+
 //    // Method to fetch filtered tasks based on title, taskStatus, priority, and dueDate
 //    public List<Task> getFilteredTasks(String title, TaskStatus taskStatus, String priority, LocalDate dueDate) {
 //        // Implement filtering logic based on the provided parameters
@@ -116,27 +139,3 @@ public class EmployeeServiceImple implements EmployeeService {
 //        }
 //        return taskRepository.findAll(); // Return all tasks if no filter is applied
 //    }
-
-
-    public List<TaskDTO> getFilteredTasksByUserId(Long userid, String title, String priority, TaskStatus taskStatus, LocalDate dueDate) {
-        // Get filtered tasks from the repository based on parameters
-        List<Task> tasks = taskRepository.findFilteredTasks(userid, title, priority, taskStatus, dueDate);
-
-        // Convert Task entities to TaskDTOs
-        List<TaskDTO> taskDTOs = tasks.stream()
-                .map(Task::getTaskDTO)  // Assuming Task has a method to convert to TaskDTO
-                .collect(Collectors.toList());
-
-        return taskDTOs;
-    }
-    private TaskStatus mapStringToTaskStatus(String taskStatus) {
-        System.out.println("running mapStringTo taskStatus method in EmployeeServiceImple");
-        return switch (taskStatus) {
-            case "PENDING" -> TaskStatus.PENDING;
-            case "INPROGRESS" -> TaskStatus.INPROGRESS;
-            case "COMPLETED" -> TaskStatus.COMPLETED;
-            case "DEFERRED" -> TaskStatus.DEFERRED;
-            default -> TaskStatus.CANCELLED;
-        };
-    }
-}

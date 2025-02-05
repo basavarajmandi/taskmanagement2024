@@ -15,18 +15,25 @@ import java.util.Date;
 @NoArgsConstructor
 @ToString
 @Entity
+@Data
+@Table(name = "task")
 public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
+    @Column(name = "title", length = 255)
     private String title;
 
+    @Column(name = "due_date")
     private LocalDate dueDate;
 
+    @Column(name = "priority", length = 255)
     private String priority;
 
+    @Column(name = "description", length = 255)
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -35,10 +42,12 @@ public class Task {
     @JsonIgnore
     private User user;
 
+    @Enumerated(EnumType.ORDINAL) // Maps to 'task_status' as an integer
+    @Column(name = "task_status", columnDefinition = "TINYINT CHECK (task_status BETWEEN 0 AND 4)")
     private TaskStatus taskStatus;
 
-    public TaskDTO getTaskDTO(){
-        // canvart taskentity to taskDto methis this one
+    public TaskDTO getTaskDTO() {
+        // canvart taskentity to taskDto method this one encapsulation
         TaskDTO taskDTO = new TaskDTO();
         taskDTO.setId(id);
         taskDTO.setTitle(title);
@@ -51,62 +60,5 @@ public class Task {
         return taskDTO;
 
     }
-
-    public LocalDate getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDate dueDate) {
-        this.dueDate = dueDate;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getPriority() {
-        return priority;
-    }
-
-    public void setPriority(String priority) {
-        this.priority = priority;
-    }
-
-    public TaskStatus getTaskStatus() {
-        return taskStatus;
-    }
-
-    public void setTaskStatus(TaskStatus taskStatus) {
-        this.taskStatus = taskStatus;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
 
 }
