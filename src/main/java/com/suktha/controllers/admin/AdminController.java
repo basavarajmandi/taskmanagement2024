@@ -7,17 +7,26 @@ import com.suktha.services.exportToExcel.ExportToExcelService;
 import com.suktha.services.task.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -51,22 +60,82 @@ public class AdminController {
         return adminService.filterTasks(priority, title, dueDate, taskStatus, employeeName);
     }
 
-
     @PostMapping("/savetask")
-    public ResponseEntity<?> postTask(@RequestBody TaskDTO taskDto) {
-        TaskDTO createdtask = adminService.postTask(taskDto);
-        log.info("running  adminService method in Admincontroller by creaedTask:" + createdtask);
-        if (createdtask == null)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdtask);
+    public ResponseEntity<?> postTask(
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
+            @RequestParam("priority") String priority,
+            @RequestParam("employeeId") Long employeeId,
+            @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+        // Create TaskDTO and populate it with form data
+        TaskDTO taskDto = new TaskDTO();
+        taskDto.setTitle(title);
+        taskDto.setDescription(description);
+        taskDto.setDueDate(dueDate); // No need to parse manuallyhe dueDate is a LocalDate
+        taskDto.setPriority(priority);
+        taskDto.setEmployeeId(employeeId);
 
+        // If an image is provided, store the image file name
+        if (image != null && !image.isEmpty()) {
+            String imageName = saveImageToFileSystem(image);  // Save the image and get the file name
+            taskDto.setImageName(imageName);  // Set the image name in the DTO
+        }
+
+        TaskDTO createdTask = adminService.postTask(taskDto);
+
+        if (createdTask == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
+
+    private String saveImageToFileSystem(MultipartFile image) throws IOException {
+        Path imagesDirectory = Paths.get("C:/uploaded_images");
+
+        // Check if the directory exists, and if not, create it
+        if (!Files.exists(imagesDirectory)) {
+            Files.createDirectories(imagesDirectory);
+        }
+
+        // Create a unique file name for the image
+        String imageName = System.currentTimeMillis() + "-" + image.getOriginalFilename();
+
+        // Define the file path to store the image
+        Path imagePath = imagesDirectory.resolve(imageName);
+
+        // Save the image to the file system
+        Files.write(imagePath, image.getBytes());
+
+        return imageName;  // Return the image name (or path) to save in the database
+    }
+
 
     @GetMapping("/tasks")
     public ResponseEntity<?> getTask() {
         log.info("running getTask method");
         return ResponseEntity.ok(adminService.getTask());
     }
+
+
+
+
+//    @GetMapping("/images/{imageName}")
+//    public ResponseEntity<Resource> getImage(@PathVariable String imageName) throws IOException {
+//        Path imagePath = Paths.get("images").resolve(imageName);
+//        Resource resource = new UrlResource(imagePath.toUri());
+//
+//        if (!resource.exists() || !resource.isReadable()) {
+//            throw new RuntimeException("Image not found: " + imageName);
+//        }
+//
+//        return ResponseEntity.ok()
+//                .contentType(MediaType.IMAGE_JPEG)
+//                .body(resource);
+//    }
+
+
+
 
     @GetMapping("/tasks/paginated")
     public ResponseEntity<Map<String, Object>> getTasksWithPagination(
@@ -204,3 +273,16 @@ public class AdminController {
 
 
 }
+//    @PostMapping("/savetask")
+//    public ResponseEntity<?> postTask(@RequestBody TaskDTO taskDto,  @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+//        // Check if an image is provided and set it in TaskDTO
+//        if (image != null && !image.isEmpty()) {
+//            taskDto.setImageData(image.getBytes());
+//        }
+//        TaskDTO createdtask = adminService.postTask(taskDto);
+//        log.info("running  adminService method in Admincontroller by creaedTask:" + createdtask);
+//        if (createdtask == null)
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdtask);
+//
+//    }

@@ -43,6 +43,7 @@ public class WebSecurityConfiguration {
                         request.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/admin/**").hasAnyAuthority(UserRole.ADMIN.name())
                                 .requestMatchers("/api/employee/**").hasAnyAuthority(UserRole.EMPLOYEE.name())
+                                .requestMatchers("api/files/**").permitAll()
                                 .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider()).addFilterBefore(

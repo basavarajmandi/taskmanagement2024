@@ -21,13 +21,11 @@ public class Comment {
 
     private Date createdAt;
 
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "task_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private Task task;
-
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
@@ -35,48 +33,8 @@ public class Comment {
     @JsonIgnore
     private User user;
 
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Task getTask() {
-        return task;
-    }
-
-    public void setTask(Task task) {
-        this.task = task;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     //canvarting entity to dto
-    public CommentDTO getCommentDto(){
+    public CommentDTO getCommentDto() {
         CommentDTO commentDTO = new CommentDTO();
         commentDTO.setContent(content);
         commentDTO.setCreatedAt(createdAt);
@@ -86,6 +44,4 @@ public class Comment {
         commentDTO.setPostedUserName(user.getName());
         return commentDTO;
     }
-
-
 }

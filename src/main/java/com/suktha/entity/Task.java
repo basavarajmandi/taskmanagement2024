@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.util.Date;
 
 @NoArgsConstructor
-@ToString
 @Entity
 @Data
 @Table(name = "task")
@@ -46,6 +45,12 @@ public class Task {
     @Column(name = "task_status", columnDefinition = "TINYINT CHECK (task_status BETWEEN 0 AND 4)")
     private TaskStatus taskStatus;
 
+
+    // New field to store image as byte array
+    // Store the image file name instead of the byte array
+    @Column(name = "image_name")
+    private String imageName;  // Store image name or path
+
     public TaskDTO getTaskDTO() {
         // canvart taskentity to taskDto method this one encapsulation
         TaskDTO taskDTO = new TaskDTO();
@@ -57,6 +62,8 @@ public class Task {
         taskDTO.setPriority(priority);
         taskDTO.setDueDate(dueDate);
         taskDTO.setDescription(description);
+
+        taskDTO.setImageName(imageName);  // Set image name
         return taskDTO;
 
     }

@@ -35,7 +35,23 @@ public class EmployeeController {
         log.info("Fetching tasks for user Id:" + userid);
         List<TaskDTO> task = employeeService.getTasksByUserId(userid);
         log.info("Task Fetched:" + task);
+
+        if (task != null && !task.isEmpty()) {
+            task.forEach(tasks -> {
+                if (tasks.getImageName() != null) {
+                    tasks.setImageName("http://localhost:8080/api/files/" + tasks.getImageName());
+                }
+            });
+        }
+
+        log.info("Tasks Fetched: " + task);
         return ResponseEntity.ok(task);
+    }
+
+
+    @GetMapping("/task/{taskid}")
+    public ResponseEntity<?> getTaskByid(@PathVariable Long taskid) {
+        return ResponseEntity.ok(employeeService.getTaskById(taskid));
     }
 
     @PutMapping("/task/{id}/{status}")
@@ -50,10 +66,7 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.OK).body(updateTaskDto);
     }
 
-    @GetMapping("/task/{taskid}")
-    public ResponseEntity<?> getTaskByid(@PathVariable Long taskid) {
-        return ResponseEntity.ok(employeeService.getTaskById(taskid));
-    }
+
 
     @PostMapping("/task/comment")
     public ResponseEntity<?> creatComment(@RequestParam Long taskId, @RequestParam Long postedBy, @RequestBody String content) {

@@ -43,18 +43,22 @@ public class AdminServiceImplement implements AdminService {
                 .collect(Collectors.toList());
     }
 
-    @Override
     public TaskDTO postTask(TaskDTO taskDto) {
         Optional<User> optionalUser = userRepository.findById(taskDto.getEmployeeId());
-        log.info("running postTask method in AdminServiceImplement class chack the method");
         if (optionalUser.isPresent()) {
-            Task task = new Task();//task entity to dto sending
+            Task task = new Task();
             task.setTitle(taskDto.getTitle());
             task.setUser(optionalUser.get());
             task.setPriority(taskDto.getPriority());
             task.setDescription(taskDto.getDescription());
             task.setTaskStatus(TaskStatus.CANCELLED);
             task.setDueDate(taskDto.getDueDate());
+
+            // Store the image name in the Task entity
+            if (taskDto.getImageName() != null) {
+                task.setImageName(taskDto.getImageName());
+            }
+
             return taskRepository.save(task).getTaskDTO();
         }
         return null;
