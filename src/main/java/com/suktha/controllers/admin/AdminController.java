@@ -1,14 +1,15 @@
 package com.suktha.controllers.admin;
+
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
+import com.suktha.entity.Category;
 import com.suktha.enums.TaskStatus;
+import com.suktha.repositories.CategoryRepository;
 import com.suktha.services.admin.AdminService;
 import com.suktha.services.exportToExcel.ExportToExcelService;
 import com.suktha.services.task.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -26,7 +28,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -50,15 +51,6 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getUsers());
     }
 
-    @GetMapping("/tasks/filter")
-    public List<TaskDTO> filterTasks(
-            @RequestParam(required = false) String priority,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) TaskStatus taskStatus,
-            @RequestParam(required = false) String employeeName,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
-        return adminService.filterTasks(priority, title, dueDate, taskStatus, employeeName);
-    }
 
     @PostMapping("/savetask")
     public ResponseEntity<?> postTask(
@@ -67,7 +59,10 @@ public class AdminController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
             @RequestParam("priority") String priority,
             @RequestParam("employeeId") Long employeeId,
-            @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @RequestParam(value = "categoryName", required = false) String categoryName,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "voice", required = false) MultipartFile voiceFile) throws IOException {
         // Create TaskDTO and populate it with form data
         TaskDTO taskDto = new TaskDTO();
         taskDto.setTitle(title);
@@ -75,13 +70,20 @@ public class AdminController {
         taskDto.setDueDate(dueDate); // No need to parse manuallyhe dueDate is a LocalDate
         taskDto.setPriority(priority);
         taskDto.setEmployeeId(employeeId);
+        taskDto.setCategoryId((categoryId));
+        taskDto.setCategoryName((categoryName));
 
         // If an image is provided, store the image file name
         if (image != null && !image.isEmpty()) {
-            String imageName = saveImageToFileSystem(image);  // Save the image and get the file name
+            String imageName = saveFileToFileSystem(image, "C:/uploaded_images/");
             taskDto.setImageName(imageName);  // Set the image name in the DTO
         }
 
+        // Save voice file
+        if (voiceFile != null && !voiceFile.isEmpty()) {
+            String voiceName = saveFileToFileSystem(voiceFile, "C:/uploaded_voices/");
+            taskDto.setVoiceName(voiceName);
+        }
         TaskDTO createdTask = adminService.postTask(taskDto);
 
         if (createdTask == null) {
@@ -90,26 +92,17 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
 
-    private String saveImageToFileSystem(MultipartFile image) throws IOException {
-        Path imagesDirectory = Paths.get("C:/uploaded_images");
-
-        // Check if the directory exists, and if not, create it
-        if (!Files.exists(imagesDirectory)) {
-            Files.createDirectories(imagesDirectory);
+    private String saveFileToFileSystem(MultipartFile file, String directoryPath) throws IOException {
+        Path directory = Paths.get(directoryPath);
+        if (!Files.exists(directory)) {
+            Files.createDirectories(directory);
         }
+        String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
+        Path filePath = directory.resolve(fileName);
+        Files.write(filePath, file.getBytes());
 
-        // Create a unique file name for the image
-        String imageName = System.currentTimeMillis() + "-" + image.getOriginalFilename();
-
-        // Define the file path to store the image
-        Path imagePath = imagesDirectory.resolve(imageName);
-
-        // Save the image to the file system
-        Files.write(imagePath, image.getBytes());
-
-        return imageName;  // Return the image name (or path) to save in the database
+        return fileName;
     }
-
 
     @GetMapping("/tasks")
     public ResponseEntity<?> getTask() {
@@ -117,25 +110,40 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getTask());
     }
 
+    @GetMapping("/categories")
+    public ResponseEntity<List<Category>> getCategories() {
+        return ResponseEntity.ok(adminService.getCategories());
+    }
 
-
-
-//    @GetMapping("/images/{imageName}")
-//    public ResponseEntity<Resource> getImage(@PathVariable String imageName) throws IOException {
-//        Path imagePath = Paths.get("images").resolve(imageName);
-//        Resource resource = new UrlResource(imagePath.toUri());
+//    private String saveImageToFileSystem(MultipartFile image) throws IOException {
+//        Path imagesDirectory = Paths.get("C:/uploaded_images");
 //
-//        if (!resource.exists() || !resource.isReadable()) {
-//            throw new RuntimeException("Image not found: " + imageName);
+//        // Check if the directory exists, and if not, create it
+//        if (!Files.exists(imagesDirectory)) {
+//            Files.createDirectories(imagesDirectory);
 //        }
 //
-//        return ResponseEntity.ok()
-//                .contentType(MediaType.IMAGE_JPEG)
-//                .body(resource);
+//        // Create a unique file name for the image
+//        String imageName = System.currentTimeMillis() + "-" + image.getOriginalFilename();
+//
+//        // Define the file path to store the image
+//        Path imagePath = imagesDirectory.resolve(imageName);
+//
+//        // Save the image to the file system
+//        Files.write(imagePath, image.getBytes());
+//
+//        return imageName;  // Return the image name (or path) to save in the database
 //    }
 
-
-
+    @GetMapping("/tasks/filter")
+    public List<TaskDTO> filterTasks(
+            @RequestParam(required = false) List<String> priority,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) List<TaskStatus> taskStatus,
+            @RequestParam(required = false) String employeeName,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
+        return adminService.filterTasks(priority, title, dueDate, taskStatus, employeeName);
+    }
 
     @GetMapping("/tasks/paginated")
     public ResponseEntity<Map<String, Object>> getTasksWithPagination(
@@ -230,17 +238,13 @@ public class AdminController {
     }
 
     @GetMapping("/tasks/export")
-    public ResponseEntity<byte[]> exportToExcel(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
-            @RequestParam(defaultValue = "id") String sortField,
-            @RequestParam(defaultValue = "asc") String sortDirection) {
+    public ResponseEntity<byte[]> exportToExcel() {
         try {
-            // Fetch paginated data using the existing method
-            Map<String, Object> paginatedData = taskService.getPaginatedTasks(page, size, sortField, sortDirection);
 
-            // Extract the list of tasks from the response map (paginated tasks for export)
-            List<TaskDTO> tasksForExport = (List<TaskDTO>) paginatedData.get("content");
+          //  Map<String, Object> paginatedData = taskService.getPaginatedTasks(page, size, sortField, sortDirection);
+
+
+            List<TaskDTO> tasksForExport =  taskService.getAllTasks();
 
             // Convert TaskDTO list to a list of maps for Excel
             List<Map<String, Object>> tasksForExcel = tasksForExport.stream().map(taskDTO -> {
@@ -261,8 +265,9 @@ public class AdminController {
 
             // Set headers to force download and return the byte array
             HttpHeaders headers = new HttpHeaders();
-            headers.add("Content-Disposition", "attachment; filename=tasks_page_" + page + "_size_" + size + "_sorted_by_" + sortField + "_" + sortDirection + ".xlsx");
+            headers.add("Content-Disposition", "attachment; filename=all_tasks.xlsx");
             headers.add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
 
             return new ResponseEntity<>(excelFile, headers, HttpStatus.OK);
         } catch (IOException e) {
@@ -270,7 +275,6 @@ public class AdminController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-
 
 }
 //    @PostMapping("/savetask")

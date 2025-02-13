@@ -30,4 +30,6 @@ public interface TaskService {
     Map<String, Object> getEmployeeDashboard(Long employeeId);
 
     Map<String, Integer> getTaskCountsByPriority(Long employeeId);
+
+    List<TaskDTO> getAllTasks();
 }

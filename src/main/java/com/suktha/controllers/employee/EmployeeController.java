@@ -39,7 +39,7 @@ public class EmployeeController {
         if (task != null && !task.isEmpty()) {
             task.forEach(tasks -> {
                 if (tasks.getImageName() != null) {
-                    tasks.setImageName("http://localhost:8080/api/files/" + tasks.getImageName());
+                    tasks.setImageName("http://localhost:8080/api/files/images/" + tasks.getImageName());
                 }
             });
         }

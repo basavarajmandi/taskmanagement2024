@@ -1,8 +1,10 @@
 package com.suktha.services.admin;
 
+import com.suktha.dtos.CategoryDTO;
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
 import com.suktha.dtos.UserDTO;
+import com.suktha.entity.Category;
 import com.suktha.entity.Task;
 import com.suktha.entity.User;
 import com.suktha.enums.TaskStatus;
@@ -23,6 +25,8 @@ public interface AdminService {
 
     List<TaskDTO> getTask();
 
+    List<Category> getCategories();
+
     TaskDTO getTaskByid(Long id);
 
     void deleteTask(Long id);
@@ -36,7 +40,7 @@ public interface AdminService {
     List<CommentDTO> getCommentsByTask(Long taskId);
 
     // New method for filtering tasks
-    List<TaskDTO> filterTasks(String priority, String title, LocalDate dueDate, TaskStatus taskStatus, String employeeName);
+    List<TaskDTO> filterTasks(List<String>  priorities, String title, LocalDate dueDate, List<TaskStatus> taskStatuses, String employeeName);
     //  Map<String, Object> getPaginatedTasks(int page, int size, String sortField, String sortDirection);
 
 }

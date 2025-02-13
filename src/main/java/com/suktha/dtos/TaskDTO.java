@@ -21,4 +21,7 @@ public class TaskDTO {
     private String employeeName;
     // Change the field to store image name (not image data)
     private String imageName;  // Store image file name
+    private String voiceName;
+    private String categoryName;
+    private Long categoryId;
 }

@@ -10,10 +10,11 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
+
+    List<Task> findAllByUserId(Long id);
 
     @Query("SELECT COUNT(t) FROM Task t WHERE t.dueDate < CURRENT_DATE AND t.taskStatus != TaskStatus.COMPLETED")
     long countOverdueTasks();
@@ -30,22 +31,23 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findAllBytitleContaining(String title);
 
-    List<Task> findAllByUserId(Long id);
+
 
     //jpql query insed of spcification query
     @Query("SELECT t FROM Task t JOIN t.user u where" +
-            "(:priority IS NULL OR t.priority = :priority) AND" +
+            "(:priorities IS NULL OR t.priority IN :priorities) AND " +
             "(:title IS NULL OR t.title LIKE %:title%) AND" +
             "(:dueDate IS NULL OR t.dueDate = :dueDate) AND" +
-            "(:taskStatus IS NULL OR t.taskStatus= :taskStatus) AND" +
+            "(:taskStatuses IS NULL OR t.taskStatus IN :taskStatuses) AND " +
             "(:employeeName IS NULL OR u.name LIKE %:employeeName%)")
-    List<Task> findByFilters(@Param("priority") String priority,
+    List<Task> findByFilters(@Param("priorities") List<String> priorities,
                              @Param("title") String title,
                              @Param("dueDate") LocalDate dueDate,
-                             @Param("taskStatus") TaskStatus taskStatus,
+                             @Param("taskStatuses") List<TaskStatus> taskStatuses,
                              @Param("employeeName") String employeeName);
 
-    //it used for filter
+
+    //it used for filter for employees card
     @Query("SELECT t FROM Task t JOIN t.user u WHERE t.user.id = :userid " +
             "AND (:title IS NULL OR t.title LIKE %:title%) " +
             "AND (:priority IS NULL OR t.priority = :priority) " +

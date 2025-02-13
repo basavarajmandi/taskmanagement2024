@@ -35,12 +35,6 @@ public class Task {
     @Column(name = "description", length = 255)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @JsonIgnore
-    private User user;
-
     @Enumerated(EnumType.ORDINAL) // Maps to 'task_status' as an integer
     @Column(name = "task_status", columnDefinition = "TINYINT CHECK (task_status BETWEEN 0 AND 4)")
     private TaskStatus taskStatus;
@@ -50,6 +44,22 @@ public class Task {
     // Store the image file name instead of the byte array
     @Column(name = "image_name")
     private String imageName;  // Store image name or path
+
+
+    @Column(name = "voice_name")
+    private String voiceName;
+
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
+    private User user;
+
+
+    @ManyToOne(fetch = FetchType.LAZY,optional = false,cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Category category;
 
     public TaskDTO getTaskDTO() {
         // canvart taskentity to taskDto method this one encapsulation
@@ -62,8 +72,10 @@ public class Task {
         taskDTO.setPriority(priority);
         taskDTO.setDueDate(dueDate);
         taskDTO.setDescription(description);
-
-        taskDTO.setImageName(imageName);  // Set image name
+        taskDTO.setImageName(imageName);
+        taskDTO.setVoiceName(voiceName);// Set image name
+        taskDTO.setCategoryId(category.getId());
+        taskDTO.setCategoryName(category.getName());
         return taskDTO;
 
     }

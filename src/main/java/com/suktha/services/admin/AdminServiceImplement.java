@@ -1,13 +1,16 @@
 package com.suktha.services.admin;
 
+import com.suktha.dtos.CategoryDTO;
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
 import com.suktha.dtos.UserDTO;
+import com.suktha.entity.Category;
 import com.suktha.entity.Comment;
 import com.suktha.entity.Task;
 import com.suktha.entity.User;
 import com.suktha.enums.TaskStatus;
 import com.suktha.enums.UserRole;
+import com.suktha.repositories.CategoryRepository;
 import com.suktha.repositories.CommentRepository;
 import com.suktha.repositories.TaskRepository;
 import com.suktha.repositories.UserRepository;
@@ -34,6 +37,9 @@ public class AdminServiceImplement implements AdminService {
     @Autowired
     private CommentRepository commentRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     @Override
     public List<UserDTO> getUsers() {
         return userRepository.findAll()
@@ -45,24 +51,47 @@ public class AdminServiceImplement implements AdminService {
 
     public TaskDTO postTask(TaskDTO taskDto) {
         Optional<User> optionalUser = userRepository.findById(taskDto.getEmployeeId());
-        if (optionalUser.isPresent()) {
-            Task task = new Task();
-            task.setTitle(taskDto.getTitle());
-            task.setUser(optionalUser.get());
-            task.setPriority(taskDto.getPriority());
-            task.setDescription(taskDto.getDescription());
-            task.setTaskStatus(TaskStatus.CANCELLED);
-            task.setDueDate(taskDto.getDueDate());
-
-            // Store the image name in the Task entity
-            if (taskDto.getImageName() != null) {
-                task.setImageName(taskDto.getImageName());
-            }
-
-            return taskRepository.save(task).getTaskDTO();
+        if (optionalUser.isEmpty()) {
+            throw new RuntimeException("User not found with ID: " + taskDto.getEmployeeId());
         }
-        return null;
+        Task task = new Task();
+        task.setTitle(taskDto.getTitle());
+        task.setUser(optionalUser.get());
+        task.setPriority(taskDto.getPriority());
+        task.setDescription(taskDto.getDescription());
+        task.setTaskStatus(TaskStatus.PENDING);
+        task.setDueDate(taskDto.getDueDate());
+        // Handle category selection or creation
+        Category category = null;
+        if (taskDto.getCategoryId() != null) {
+            category = categoryRepository.findById(taskDto.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Category not found!"));
+        } else if (taskDto.getCategoryName() != null && !taskDto.getCategoryName().isBlank()) {
+            category = new Category();
+            category.setName(taskDto.getCategoryName());
+            category = categoryRepository.save(category);
+        } else {
+            throw new RuntimeException("Category is required!");
+        }
+
+        task.setCategory(category);
+
+        // Store the image name in the Task entity image column
+        if (taskDto.getImageName() != null) {
+            task.setImageName(taskDto.getImageName());
+        }
+        if (taskDto.getVoiceName() != null) {
+            task.setVoiceName((taskDto.getVoiceName()));
+        }
+
+//        // Set image and voice file names
+//        task.setImageName(taskDto.getImageName());
+//        task.setVoiceName(taskDto.getVoiceName());
+
+
+        return taskRepository.save(task).getTaskDTO();
     }
+
 
     @Override
     public List<TaskDTO> getTask() {
@@ -71,6 +100,11 @@ public class AdminServiceImplement implements AdminService {
                 .stream()
                 .map(Task::getTaskDTO)//this is canvert entity to dto map
                 .collect(Collectors.toList());
+    }
+
+
+    public List<Category> getCategories() {
+        return categoryRepository.findAll();
     }
 
     @Override
@@ -97,6 +131,8 @@ public class AdminServiceImplement implements AdminService {
         Optional<Task> optionalTask = taskRepository.findById(id);
         log.info("running updatetask method in AdminServiceImplement clas :" + optionalTask);
         Optional<User> optionalUser = userRepository.findById(taskDto.getEmployeeId());
+        // Optional<Category> optionalCategory = categoryRepository.findById(taskDto.getCategoryId());
+        // Fetch category
         if (optionalTask.isPresent() && optionalUser.isPresent()) {
             Task existingTask = optionalTask.get();
             existingTask.setTitle(taskDto.getTitle());
@@ -106,6 +142,22 @@ public class AdminServiceImplement implements AdminService {
             existingTask.setDueDate(taskDto.getDueDate());
             TaskStatus taskStatus = mapStringToTaskStatus(String.valueOf(taskDto.getTaskStatus()));
             existingTask.setTaskStatus(taskStatus);
+
+
+            // Handle category selection or creation
+            Category category = null;
+            if (taskDto.getCategoryId() != null) {
+                // Use existing category
+                Optional<Category> optionalCategory = categoryRepository.findById(taskDto.getCategoryId());
+                category = optionalCategory.orElse(null);
+            } else if (taskDto.getCategoryName() != null && !taskDto.getCategoryName().isEmpty()) {
+                // Create new category
+                category = new Category();
+                category.setName(taskDto.getCategoryName());
+                category = categoryRepository.save(category); // Save new category
+            }
+            existingTask.setCategory(category); // Set category before saving
+            // existingTask.setCategory((optionalCategory.get())); //update category
             return taskRepository.save(existingTask).getTaskDTO();
         }
         return null;
@@ -137,8 +189,8 @@ public class AdminServiceImplement implements AdminService {
 
     }
 
-    public List<TaskDTO> filterTasks(String priority, String title, LocalDate dueDate, TaskStatus taskStatus, String employeeName) {
-        List<Task> filteredTasks = this.taskRepository.findByFilters(priority, title, dueDate, taskStatus, employeeName);
+    public List<TaskDTO> filterTasks(List<String> priorities, String title, LocalDate dueDate, List<TaskStatus> taskStatuses, String employeeName) {
+        List<Task> filteredTasks = this.taskRepository.findByFilters(priorities, title, dueDate, taskStatuses, employeeName);
         log.info("running filterTasks method in AdminServiceImplement class:" + filteredTasks);
         return filteredTasks.stream()
                 .map(Task::getTaskDTO) // Convert each Task entity to TaskDTO
