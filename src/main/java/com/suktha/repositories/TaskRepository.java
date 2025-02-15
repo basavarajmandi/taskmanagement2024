@@ -14,6 +14,10 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
+//this is for type of filters in below navbar have button
+    List<Task> findByDueDate(LocalDate dueDate);
+    List<Task> findByDueDateBetween(LocalDate startDate, LocalDate endDate);
+
     List<Task> findAllByUserId(Long id);
 
     @Query("SELECT COUNT(t) FROM Task t WHERE t.dueDate < CURRENT_DATE AND t.taskStatus != TaskStatus.COMPLETED")

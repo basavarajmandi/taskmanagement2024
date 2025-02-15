@@ -3,6 +3,7 @@ package com.suktha.controllers.admin;
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
 import com.suktha.entity.Category;
+import com.suktha.entity.Task;
 import com.suktha.enums.TaskStatus;
 import com.suktha.repositories.CategoryRepository;
 import com.suktha.services.admin.AdminService;
@@ -52,11 +53,23 @@ public class AdminController {
     }
 
 
+    @GetMapping("/tasks")
+    public ResponseEntity<?> getTask() {
+        log.info("running getTask method");
+        return ResponseEntity.ok(adminService.getTask());
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<Category>> getCategories() {
+        return ResponseEntity.ok(adminService.getCategories());
+    }
+
+
     @PostMapping("/savetask")
     public ResponseEntity<?> postTask(
             @RequestParam("title") String title,
             @RequestParam("description") String description,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dueDate,
             @RequestParam("priority") String priority,
             @RequestParam("employeeId") Long employeeId,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
@@ -104,36 +117,7 @@ public class AdminController {
         return fileName;
     }
 
-    @GetMapping("/tasks")
-    public ResponseEntity<?> getTask() {
-        log.info("running getTask method");
-        return ResponseEntity.ok(adminService.getTask());
-    }
 
-    @GetMapping("/categories")
-    public ResponseEntity<List<Category>> getCategories() {
-        return ResponseEntity.ok(adminService.getCategories());
-    }
-
-//    private String saveImageToFileSystem(MultipartFile image) throws IOException {
-//        Path imagesDirectory = Paths.get("C:/uploaded_images");
-//
-//        // Check if the directory exists, and if not, create it
-//        if (!Files.exists(imagesDirectory)) {
-//            Files.createDirectories(imagesDirectory);
-//        }
-//
-//        // Create a unique file name for the image
-//        String imageName = System.currentTimeMillis() + "-" + image.getOriginalFilename();
-//
-//        // Define the file path to store the image
-//        Path imagePath = imagesDirectory.resolve(imageName);
-//
-//        // Save the image to the file system
-//        Files.write(imagePath, image.getBytes());
-//
-//        return imageName;  // Return the image name (or path) to save in the database
-//    }
 
     @GetMapping("/tasks/filter")
     public List<TaskDTO> filterTasks(
@@ -170,6 +154,11 @@ public class AdminController {
 
     @PutMapping("/task/{id}")
     public ResponseEntity<?> UpdateTask(@RequestBody TaskDTO taskDto, @PathVariable Long id) {
+        log.info("Received update request for task {}: {}", id, taskDto);
+
+        if (taskDto.getDueDate() == null) {
+            log.warn("Due date is null in the request!");
+        }
         TaskDTO updatedTaskDto = adminService.updateTask(taskDto, id);
         log.info("running updateTask method in AdminControlleruPdatetask:" + updatedTaskDto);
         if (updatedTaskDto == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -237,14 +226,57 @@ public class AdminController {
         return taskService.getTaskCountsByPriority();
     }
 
+
+
+    @GetMapping("tasks/today")
+    public ResponseEntity<List<TaskDTO>> getTaskDueToday(){
+        return ResponseEntity.ok(adminService.getTasksDueToday());
+    }
+
+    @GetMapping("tasks/yesterday")
+    public ResponseEntity<List<TaskDTO>> getTasksDueYesterday(){
+        return ResponseEntity.ok(adminService.getTasksDueYesterday());
+    }
+
+    @GetMapping("tasks/this-week")
+    public ResponseEntity<List<TaskDTO>> getTasksDueThisWeek(){
+        return ResponseEntity.ok(adminService.getTasksDueThisWeek());
+    }
+
+    @GetMapping("tasks/last-week")
+    public ResponseEntity<List<TaskDTO>> getTasksLastWeek() {
+        return ResponseEntity.ok(adminService.getTasksDueLastWeek());
+    }
+
+    @GetMapping("/tasks/this-month")
+    public ResponseEntity<List<TaskDTO>> getTasksThisMonth() {
+        return ResponseEntity.ok(adminService.getTasksDueThisMonth());
+    }
+
+    @GetMapping("/tasks/last-month")
+    public ResponseEntity<List<TaskDTO>> getTasksLastMonth() {
+        return ResponseEntity.ok(adminService.getTasksDueLastMonth());
+    }
+
+    @GetMapping("/tasks/this-year")
+    public ResponseEntity<List<TaskDTO>> getTasksThisYear() {
+        return ResponseEntity.ok(adminService.getTasksDueThisYear());
+    }
+
+    @GetMapping("/tasks/custom")
+    public ResponseEntity<List<TaskDTO>> getTasksByCustomDateRange(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(adminService.getTasksByCustomDateRange(startDate, endDate));
+    }
+
     @GetMapping("/tasks/export")
     public ResponseEntity<byte[]> exportToExcel() {
         try {
 
-          //  Map<String, Object> paginatedData = taskService.getPaginatedTasks(page, size, sortField, sortDirection);
+            //  Map<String, Object> paginatedData = taskService.getPaginatedTasks(page, size, sortField, sortDirection);
 
-
-            List<TaskDTO> tasksForExport =  taskService.getAllTasks();
+            List<TaskDTO> tasksForExport = taskService.getAllTasks();
 
             // Convert TaskDTO list to a list of maps for Excel
             List<Map<String, Object>> tasksForExcel = tasksForExport.stream().map(taskDTO -> {
@@ -290,3 +322,21 @@ public class AdminController {
 //        return ResponseEntity.status(HttpStatus.CREATED).body(createdtask);
 //
 //    }
+//    private String saveImageToFileSystem(MultipartFile image) throws IOException {
+//        Path imagesDirectory = Paths.get("C:/uploaded_images");
+//
+//        // Check if the directory exists, and if not, create it
+//        if (!Files.exists(imagesDirectory)) {
+//            Files.createDirectories(imagesDirectory);
+//        }
+//
+//        // Create a unique file name for the image
+//        String imageName = System.currentTimeMillis() + "-" + image.getOriginalFilename();
+//
+//        // Define the file path to store the image
+//        Path imagePath = imagesDirectory.resolve(imageName);
+//
+//        // Save the image to the file system
+//        Files.write(imagePath, image.getBytes());
+//
+//        return imageName;  // Return the image name (or path) to save in the database

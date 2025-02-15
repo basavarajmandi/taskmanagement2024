@@ -5,11 +5,13 @@ import com.suktha.dtos.TaskDTO;
 import com.suktha.enums.TaskStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @NoArgsConstructor
@@ -61,6 +63,11 @@ public class Task {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+
+    @CreationTimestamp  // Auto-assigns the current date
+    @Column(updatable = false)
+    private LocalDateTime assignedDate;
+
     public TaskDTO getTaskDTO() {
         // canvart taskentity to taskDto method this one encapsulation
         TaskDTO taskDTO = new TaskDTO();
@@ -76,6 +83,7 @@ public class Task {
         taskDTO.setVoiceName(voiceName);// Set image name
         taskDTO.setCategoryId(category.getId());
         taskDTO.setCategoryName(category.getName());
+        taskDTO.setAssignedDate(assignedDate);
         return taskDTO;
 
     }

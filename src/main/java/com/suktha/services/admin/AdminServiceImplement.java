@@ -1,5 +1,6 @@
 package com.suktha.services.admin;
 
+import com.suktha.Mappers.TaskMapper;
 import com.suktha.dtos.CategoryDTO;
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -206,5 +208,62 @@ public class AdminServiceImplement implements AdminService {
             default -> TaskStatus.CANCELLED;
         };
     }
+
+
+    public List<TaskDTO> getTasksDueToday() {
+        List<Task> tasks = taskRepository.findByDueDate((LocalDate.now()));
+        return TaskMapper.entitytoDTOList(tasks);
+    }
+
+    public List<TaskDTO> getTasksDueYesterday() {
+        List<Task> tasks = taskRepository.findByDueDate(LocalDate.now().minusDays(1));
+        return TaskMapper.entitytoDTOList(tasks);
+    }
+
+    public List<TaskDTO> getTasksDueThisWeek() {
+        LocalDate startOfWeek = LocalDate.now().with(java.time.DayOfWeek.MONDAY);
+        LocalDate endOfWeek = LocalDate.now().with(java.time.DayOfWeek.SUNDAY);
+        List<Task> tasks = taskRepository.findByDueDateBetween(startOfWeek, endOfWeek);
+        return TaskMapper.entitytoDTOList(tasks);
+    }
+
+    public List<TaskDTO> getTasksDueLastWeek() {
+        LocalDate startOfLastWeek = LocalDate.now().minusWeeks(1).with(java.time.DayOfWeek.MONDAY);
+        LocalDate endOfLastWeek = LocalDate.now().minusWeeks(1).with(java.time.DayOfWeek.SUNDAY);
+        List<Task> tasks = taskRepository.findByDueDateBetween(startOfLastWeek, endOfLastWeek);
+        return TaskMapper.entitytoDTOList(tasks);
+    }
+
+
+    public List<TaskDTO> getTasksDueThisMonth() {
+        YearMonth currentMonth = YearMonth.now();
+        LocalDate startOfMonth = currentMonth.atDay(1);
+        LocalDate endOfMonth = currentMonth.atEndOfMonth();
+        List<Task> tasks = taskRepository.findByDueDateBetween(startOfMonth, endOfMonth);
+        return TaskMapper.entitytoDTOList(tasks);
+    }
+
+    public List<TaskDTO> getTasksDueLastMonth() {
+        YearMonth lastMonth = YearMonth.now().minusMonths(1);
+        LocalDate startOfLastMonth = lastMonth.atDay(1);
+        LocalDate endOfLastMonth = lastMonth.atEndOfMonth();
+        List<Task> tasks = taskRepository.findByDueDateBetween(startOfLastMonth, endOfLastMonth);
+        return TaskMapper.entitytoDTOList(tasks);
+    }
+
+    public List<TaskDTO> getTasksDueThisYear() {
+        LocalDate startOfYear = LocalDate.now().withDayOfYear(1);
+        LocalDate endOfYear = LocalDate.now().withDayOfYear(LocalDate.now().lengthOfYear());
+        List<Task> tasks = taskRepository.findByDueDateBetween(startOfYear, endOfYear);
+        return TaskMapper.entitytoDTOList(tasks);
+    }
+
+    public List<TaskDTO> getTasksByCustomDateRange(LocalDate startDate, LocalDate endDate) {
+        List<Task> tasks = taskRepository.findByDueDateBetween(startDate, endDate);
+        return TaskMapper.entitytoDTOList(tasks);
+    }
+
+
+
 
 }

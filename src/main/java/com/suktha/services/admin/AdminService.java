@@ -43,4 +43,17 @@ public interface AdminService {
     List<TaskDTO> filterTasks(List<String>  priorities, String title, LocalDate dueDate, List<TaskStatus> taskStatuses, String employeeName);
     //  Map<String, Object> getPaginatedTasks(int page, int size, String sortField, String sortDirection);
 
+
+    List<TaskDTO> getTasksDueToday();
+
+    List<TaskDTO> getTasksDueYesterday();
+
+    List<TaskDTO> getTasksDueThisWeek();
+
+
+    List<TaskDTO> getTasksDueLastWeek();
+    List<TaskDTO> getTasksDueThisMonth();
+    List<TaskDTO> getTasksDueLastMonth();
+    List<TaskDTO> getTasksDueThisYear();
+    List<TaskDTO> getTasksByCustomDateRange(LocalDate startDate, LocalDate endDate);
 }
