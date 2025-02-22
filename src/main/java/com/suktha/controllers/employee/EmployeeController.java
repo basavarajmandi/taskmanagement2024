@@ -1,17 +1,16 @@
 package com.suktha.controllers.employee;
-
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
-import com.suktha.entity.Task;
 import com.suktha.enums.TaskStatus;
 import com.suktha.services.employee.EmployeeService;
 import com.suktha.services.task.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -29,7 +28,6 @@ public class EmployeeController {
     @Autowired
     private TaskService taskService;
 
-
     @GetMapping("/task/user/{userid}")
     public ResponseEntity<?> getTaskByUserId(@PathVariable() Long userid) {
         log.info("Fetching tasks for user Id:" + userid);
@@ -43,11 +41,9 @@ public class EmployeeController {
                 }
             });
         }
-
         log.info("Tasks Fetched: " + task);
         return ResponseEntity.ok(task);
     }
-
 
     @GetMapping("/task/{taskid}")
     public ResponseEntity<?> getTaskByid(@PathVariable Long taskid) {
@@ -66,12 +62,11 @@ public class EmployeeController {
         return ResponseEntity.status(HttpStatus.OK).body(updateTaskDto);
     }
 
-
-
-    @PostMapping("/task/comment")
-    public ResponseEntity<?> creatComment(@RequestParam Long taskId, @RequestParam Long postedBy, @RequestBody String content) {
+    @PostMapping(value = "/task/comment", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> creatComment(@RequestParam Long taskId, @RequestParam Long postedBy,  @RequestParam(required = false) String content, @RequestParam(required = false) MultipartFile imageFile,
+                                          @RequestParam(required = false) MultipartFile voiceFile) {
         log.info("running createCommit method in EmployeeController ");
-        CommentDTO creatCommentdtO = employeeService.createComment(taskId, postedBy, content);
+        CommentDTO creatCommentdtO = employeeService.createComment(taskId, postedBy, content, imageFile, voiceFile);
         log.info("chack createCommentdto:" + creatCommentdtO);
         if (creatCommentdtO == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         return ResponseEntity.status(HttpStatus.OK).body(creatCommentdtO);
@@ -102,7 +97,6 @@ public class EmployeeController {
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> getEmployeeTaskStatus(@RequestParam Long employeeId) {
         Map<String, Object> dashboard = taskService.getEmployeeDashboard(employeeId);
-
         return ResponseEntity.ok(dashboard);
     }
 
@@ -114,6 +108,5 @@ public class EmployeeController {
         // Return the result inside a ResponseEntity with a 200 OK status
         return new ResponseEntity<>(taskCountsByPriority, HttpStatus.OK);
     }
-
 
 }

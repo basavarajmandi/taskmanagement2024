@@ -1,4 +1,5 @@
 package com.suktha.utiles;
+
 import com.suktha.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -21,7 +22,7 @@ import java.util.function.Function;
 public class JwtUtil {
 
     @Autowired
-private UserRepository userRepository;
+    private UserRepository userRepository;
 
     private Key getSigninKey() {
         byte[] keyBytes = Decoders.BASE64.decode("413F4428472B4B6250655368566D5970337336763979244226452948404D6351");
@@ -58,7 +59,6 @@ private UserRepository userRepository;
 
         }
 
-
     }
 
     // Extract a specific claim from the token using a resolver function
@@ -74,9 +74,6 @@ private UserRepository userRepository;
 
     }
 
-
-
-
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
@@ -91,8 +88,7 @@ private UserRepository userRepository;
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
-
-
+    
 //public User getLoggedInUser() {
 //    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //    if (authentication != null && authentication.isAuthenticated()) {
@@ -102,8 +98,6 @@ private UserRepository userRepository;
 //    }
 //    return  null;
 //}
-
-
 
 
 }

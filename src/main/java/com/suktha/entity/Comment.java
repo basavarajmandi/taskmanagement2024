@@ -17,9 +17,19 @@ public class Comment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name="content")
     private String content;
 
+    @Column(name = "created_at")
     private Date createdAt;
+
+
+    @Column(name = "image_name")
+    private String imageName;
+
+    @Column(name = "voice_name")
+    private String voiceName;
+
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "task_id", nullable = false)
@@ -42,6 +52,8 @@ public class Comment {
         commentDTO.setTaskId(task.getId());
         commentDTO.setPostedUserId(user.getId());
         commentDTO.setPostedUserName(user.getName());
+        commentDTO.setImageName(imageName);
+        commentDTO.setVoiceName(voiceName);
         return commentDTO;
     }
 }

@@ -14,12 +14,20 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -65,8 +73,9 @@ public class EmployeeServiceImple implements EmployeeService {
     }
 
     @Override
-    public CommentDTO createComment(Long taskId, Long postedBy, String content) {
+    public CommentDTO createComment(Long taskId, Long postedBy, String content,MultipartFile imageFile, MultipartFile voiceFile) {
         Optional<Task> optionalTask = taskRepository.findById(taskId);
+
         Optional<User> optionalUser = userRepository.findById(postedBy);
         if (optionalTask.isPresent() && optionalUser.isPresent()) {
             Comment comment = new Comment();
@@ -74,11 +83,51 @@ public class EmployeeServiceImple implements EmployeeService {
             comment.setCreatedAt(new Date());
             comment.setTask(optionalTask.get());
             comment.setUser(optionalUser.get());
+
+            // Save Image
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String imageName = storeFile(imageFile, "C:/uploaded_images/employee/");
+                comment.setImageName(imageName);
+            }
+
+            // Save Voice Message
+            if (voiceFile != null && !voiceFile.isEmpty()) {
+                String voiceName = storeFile(voiceFile, "C:/uploaded_voices/employee/");
+                comment.setVoiceName(voiceName);
+            }
+
             return commentRepository.save(comment).getCommentDto();
         }
 
         throw new EntityNotFoundException("task or user not found");
     }
+
+    private String storeFile(MultipartFile file, String directory) {
+        try {
+            // Ensure the directory exists
+            File dir = new File(directory);
+            if (!dir.exists()) {
+                dir.mkdirs(); // Create directories if they do not exist
+            }
+
+            // Generate a unique file name
+            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+
+            // Define the full path
+            Path filePath = Paths.get(directory, fileName);
+
+            // Save the file
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            return fileName;
+        } catch (IOException e) {
+            throw new RuntimeException("Error saving file: " + e.getMessage(), e);
+        }
+    }
+
+
+
+
 
     @Override
     public List<CommentDTO> getCommentsByTask(Long taskId) {

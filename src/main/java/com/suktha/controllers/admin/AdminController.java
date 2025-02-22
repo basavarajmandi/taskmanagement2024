@@ -118,16 +118,39 @@ public class AdminController {
     }
 
 
+//    @GetMapping("/tasks/filter")
+//    public List<TaskDTO> filterTasks(
+//            @RequestParam(required = false) List<String> priority,
+//            @RequestParam(required = false) String title,
+//            @RequestParam(required = false) List<TaskStatus> taskStatus,
+//            @RequestParam(required = false) String employeeName,
+//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
+//            @RequestParam(required = false) List<String> categoryNames) {
+//        return adminService.filterTasks(priority, title, dueDate, taskStatus, employeeName,categoryNames);
+//    }
 
     @GetMapping("/tasks/filter")
     public List<TaskDTO> filterTasks(
             @RequestParam(required = false) List<String> priority,
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) List<TaskStatus> taskStatus,
+            @RequestParam(required = false) List<String> taskStatus,
             @RequestParam(required = false) String employeeName,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate) {
-        return adminService.filterTasks(priority, title, dueDate, taskStatus, employeeName);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
+            @RequestParam(required = false) List<String> categoryNames) {
+
+        List<TaskStatus> taskStatusEnums = (taskStatus != null) ?
+                taskStatus.stream().map(TaskStatus::valueOf).collect(Collectors.toList()) : null;
+
+        return adminService.filterTasks(priority, title, dueDate, taskStatusEnums, employeeName, categoryNames);
     }
+
+    // Endpoint to get all categories with names only
+    @GetMapping("/filter/categories")
+    public List<String> getAllCategories() {
+        log.info("geting all category names only thats why i used <string> insted of <category> because it geting all with id and names it not necessary");
+        return adminService.getAllCategories();
+    }
+
 
     @GetMapping("/tasks/paginated")
     public ResponseEntity<Map<String, Object>> getTasksWithPagination(
@@ -225,7 +248,6 @@ public class AdminController {
     public List<Map<String, Object>> getTaskCountsByPriority() {
         return taskService.getTaskCountsByPriority();
     }
-
 
 
     @GetMapping("tasks/today")

@@ -1,22 +1,24 @@
 package com.suktha.repositories;
-
 import com.suktha.entity.Task;
 import com.suktha.enums.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-//this is for type of filters in below navbar have button
+    //this is for type of filters in below navbar have button
     List<Task> findByDueDate(LocalDate dueDate);
+
     List<Task> findByDueDateBetween(LocalDate startDate, LocalDate endDate);
+
+    // This will help to find tasks assigned today
+    List<Task> findByAssignedDateBetween(LocalDateTime start, LocalDateTime end);
 
     List<Task> findAllByUserId(Long id);
 
@@ -35,20 +37,34 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findAllBytitleContaining(String title);
 
-
-
-    //jpql query insed of spcification query
-    @Query("SELECT t FROM Task t JOIN t.user u where" +
-            "(:priorities IS NULL OR t.priority IN :priorities) AND " +
-            "(:title IS NULL OR t.title LIKE %:title%) AND" +
-            "(:dueDate IS NULL OR t.dueDate = :dueDate) AND" +
-            "(:taskStatuses IS NULL OR t.taskStatus IN :taskStatuses) AND " +
-            "(:employeeName IS NULL OR u.name LIKE %:employeeName%)")
-    List<Task> findByFilters(@Param("priorities") List<String> priorities,
-                             @Param("title") String title,
-                             @Param("dueDate") LocalDate dueDate,
-                             @Param("taskStatuses") List<TaskStatus> taskStatuses,
-                             @Param("employeeName") String employeeName);
+//
+//    //jpql query insed of spcification query
+//    @Query("SELECT t FROM Task t JOIN t.user  u JOIN t.category c WHERE " +
+//            "(:priorities IS NULL OR t.priority IN :priorities) AND " +
+//            "(:title IS NULL OR t.title LIKE %:title%) AND" +
+//            "(:dueDate IS NULL OR t.dueDate = :dueDate) AND" +
+//            "(:taskStatuses IS NULL OR t.taskStatus IN :taskStatuses) AND " +
+//            "(:employeeName IS NULL OR u.name LIKE %:employeeName%) AND "+
+//            "(:categoryNames IS NULL OR c.name IN :categoryNames)")
+//    List<Task> findByFilters(@Param("priorities") List<String> priorities,
+//                             @Param("title") String title,
+//                             @Param("dueDate") LocalDate dueDate,
+//                             @Param("taskStatuses") List<TaskStatus> taskStatuses,
+//                             @Param("employeeName") String employeeName,
+//                             @Param("categoryNames") List<String> categoryNames);
+@Query("SELECT t FROM Task t JOIN t.user u JOIN t.category c WHERE " +
+        "(:priorities IS NULL OR t.priority IN :priorities) AND " +
+        "(:title IS NULL OR t.title LIKE CONCAT('%', :title, '%')) AND " +
+        "(:dueDate IS NULL OR t.dueDate = :dueDate) AND " +
+        "(:taskStatuses IS NULL OR t.taskStatus IN :taskStatuses) AND " +
+        "(:employeeName IS NULL OR u.name LIKE CONCAT('%', :employeeName, '%')) AND " +
+        "(:categoryNames IS NULL OR c.name IN :categoryNames)")
+List<Task> findByFilters(@Param("priorities") List<String> priorities,
+                         @Param("title") String title,
+                         @Param("dueDate") LocalDate dueDate,
+                         @Param("taskStatuses") List<TaskStatus> taskStatuses,
+                         @Param("employeeName") String employeeName,
+                         @Param("categoryNames") List<String> categoryNames);
 
 
     //it used for filter for employees card
@@ -68,7 +84,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query("SELECT t.priority, COUNT(t) FROM Task t GROUP BY t.priority")
     List<Object[]> countTasksByPriority();
 
-
     @Query("SELECT t.taskStatus, COUNT(t) FROM Task t WHERE t.user.id = :employeeId GROUP BY t.taskStatus")
     List<Object[]> countTasksByEmployee(@Param("employeeId") Long employeeId);
 
@@ -85,6 +100,3 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 //    List<Task> findByTaskStatus(TaskStatus taskStatus);
 //    List<Task> findByPriority(String priority);
 //    List<Task> findByDueDate(LocalDate dueDate);
-
-
-
