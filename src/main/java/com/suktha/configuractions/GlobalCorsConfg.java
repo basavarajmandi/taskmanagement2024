@@ -11,8 +11,6 @@ import java.util.Arrays;
 
 @Configuration
 public class GlobalCorsConfg {
-
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -27,5 +25,4 @@ public class GlobalCorsConfg {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 }

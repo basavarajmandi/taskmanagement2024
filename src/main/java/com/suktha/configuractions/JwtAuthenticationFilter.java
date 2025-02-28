@@ -24,13 +24,10 @@ import java.io.IOException;
 @Slf4j
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
     @Autowired
     private JwtUtil jwtUtil;
-
     @Autowired
     private UserService userService;
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
 
@@ -47,22 +44,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 // Extract JWT
         jwt = authHeader.substring(7);
         log.info("jwt Token:{}:" + jwt);
-
         // Extract username
         userEmail = jwtUtil.extractUsername(jwt);
         log.info("Extracted Username{}:" + userEmail);
-
         if (StringUtils.isNoneEmpty(userEmail)
                 && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userService.userDetailsService().loadUserByUsername(userEmail);
             log.info("Loaded UserDetails: " + userDetails);
-
             // Validate the token
             boolean isValid = jwtUtil.isTokenValid(jwt, userDetails);
             log.info("JWT is valid:  " + isValid);
-
             if (isValid) {
-
                 SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
                 UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 

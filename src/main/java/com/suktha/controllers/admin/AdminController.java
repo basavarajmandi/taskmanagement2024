@@ -1,12 +1,13 @@
 package com.suktha.controllers.admin;
-
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
+import com.suktha.dtos.TaskLinkDTO;
 import com.suktha.entity.Category;
 import com.suktha.entity.Task;
 import com.suktha.enums.TaskStatus;
 import com.suktha.repositories.CategoryRepository;
 import com.suktha.services.admin.AdminService;
+import com.suktha.services.category.CategoryService;
 import com.suktha.services.exportToExcel.ExportToExcelService;
 import com.suktha.services.task.TaskService;
 import lombok.extern.slf4j.Slf4j;
@@ -19,18 +20,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/admin")
@@ -46,12 +44,14 @@ public class AdminController {
     @Autowired
     private ExportToExcelService exportToExcelService;
 
+    @Autowired
+    private CategoryService categoryService;
+
     @GetMapping("/users")
     public ResponseEntity<?> getUsers() {
         log.info("running getUserMethod in AdminController");
         return ResponseEntity.ok(adminService.getUsers());
     }
-
 
     @GetMapping("/tasks")
     public ResponseEntity<?> getTask() {
@@ -64,7 +64,6 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getCategories());
     }
 
-
     @PostMapping("/savetask")
     public ResponseEntity<?> postTask(
             @RequestParam("title") String title,
@@ -75,7 +74,10 @@ public class AdminController {
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "categoryName", required = false) String categoryName,
             @RequestParam(value = "image", required = false) MultipartFile image,
-            @RequestParam(value = "voice", required = false) MultipartFile voiceFile) throws IOException {
+            @RequestParam(value = "voice", required = false) MultipartFile voiceFile,
+            @RequestParam(value = "links", required = false) List<String> links)throws IOException {
+
+        log.info("🔗 Links received: " + links);
         // Create TaskDTO and populate it with form data
         TaskDTO taskDto = new TaskDTO();
         taskDto.setTitle(title);
@@ -97,6 +99,19 @@ public class AdminController {
             String voiceName = saveFileToFileSystem(voiceFile, "C:/uploaded_voices/");
             taskDto.setVoiceName(voiceName);
         }
+        // Handle links
+        if (links != null && !links.isEmpty()) { //  Ensure the links list is not null
+            List<TaskLinkDTO> linkDTOs = links.stream()
+                    .map(url -> {
+                        TaskLinkDTO linkDTO = new TaskLinkDTO();
+                        linkDTO.setUrl(url);
+                        return linkDTO;
+                    }).toList();
+            taskDto.setLinks(linkDTOs);
+            log.info("links set in DTO :"+linkDTOs);
+        }
+
+
         TaskDTO createdTask = adminService.postTask(taskDto);
 
         if (createdTask == null) {
@@ -117,56 +132,11 @@ public class AdminController {
         return fileName;
     }
 
-
-//    @GetMapping("/tasks/filter")
-//    public List<TaskDTO> filterTasks(
-//            @RequestParam(required = false) List<String> priority,
-//            @RequestParam(required = false) String title,
-//            @RequestParam(required = false) List<TaskStatus> taskStatus,
-//            @RequestParam(required = false) String employeeName,
-//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
-//            @RequestParam(required = false) List<String> categoryNames) {
-//        return adminService.filterTasks(priority, title, dueDate, taskStatus, employeeName,categoryNames);
-//    }
-
-    @GetMapping("/tasks/filter")
-    public List<TaskDTO> filterTasks(
-            @RequestParam(required = false) List<String> priority,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) List<String> taskStatus,
-            @RequestParam(required = false) String employeeName,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
-            @RequestParam(required = false) List<String> categoryNames) {
-
-        List<TaskStatus> taskStatusEnums = (taskStatus != null) ?
-                taskStatus.stream().map(TaskStatus::valueOf).collect(Collectors.toList()) : null;
-
-        return adminService.filterTasks(priority, title, dueDate, taskStatusEnums, employeeName, categoryNames);
-    }
-
     // Endpoint to get all categories with names only
     @GetMapping("/filter/categories")
     public List<String> getAllCategories() {
         log.info("geting all category names only thats why i used <string> insted of <category> because it geting all with id and names it not necessary");
-        return adminService.getAllCategories();
-    }
-
-
-    @GetMapping("/tasks/paginated")
-    public ResponseEntity<Map<String, Object>> getTasksWithPagination(
-            @RequestParam(defaultValue = "0") int page, // Default page index
-            @RequestParam(defaultValue = "5") int size, // Default page size
-            @RequestParam(defaultValue = "id") String sortField, // Default sort field
-            @RequestParam(defaultValue = "asc") String sortDirection // Default sort direction
-    ) {
-        Map<String, Object> response = taskService.getPaginatedTasks(page, size, sortField, sortDirection);
-        log.info("running taskService in getPaginatedTask at AdminController");
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/task/{id}")
-    public ResponseEntity<?> getTaskId(@PathVariable Long id) {
-        return ResponseEntity.ok(adminService.getTaskByid(id));
+        return categoryService.getAllCategories();
     }
 
     @DeleteMapping("/task/{id}")
@@ -186,6 +156,37 @@ public class AdminController {
         log.info("running updateTask method in AdminControlleruPdatetask:" + updatedTaskDto);
         if (updatedTaskDto == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         return ResponseEntity.status(HttpStatus.OK).body(updatedTaskDto);
+    }
+    @GetMapping("/task/{id}")
+    public ResponseEntity<?> getTaskId(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getTaskByid(id));
+    }
+
+    @GetMapping("/tasks/filter")
+    public List<TaskDTO> filterTasks(
+            @RequestParam(required = false) List<String> priority,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) List<String> taskStatus,
+            @RequestParam(required = false) String employeeName,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
+            @RequestParam(required = false) List<String> categoryNames) {
+
+        List<TaskStatus> taskStatusEnums = (taskStatus != null) ?
+                taskStatus.stream().map(TaskStatus::valueOf).collect(Collectors.toList()) : null;
+
+        return adminService.filterTasks(priority, title, dueDate, taskStatusEnums, employeeName, categoryNames);
+    }
+
+    @GetMapping("/tasks/paginated")
+    public ResponseEntity<Map<String, Object>> getTasksWithPagination(
+            @RequestParam(defaultValue = "0") int page, // Default page index
+            @RequestParam(defaultValue = "5") int size, // Default page size
+            @RequestParam(defaultValue = "id") String sortField, // Default sort field
+            @RequestParam(defaultValue = "asc") String sortDirection // Default sort direction
+    ) {
+        Map<String, Object> response = taskService.getPaginatedTasks(page, size, sortField, sortDirection);
+        log.info("running taskService in getPaginatedTask at AdminController");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/task/comment")
@@ -295,7 +296,6 @@ public class AdminController {
     @GetMapping("/tasks/export")
     public ResponseEntity<byte[]> exportToExcel() {
         try {
-
             //  Map<String, Object> paginatedData = taskService.getPaginatedTasks(page, size, sortField, sortDirection);
 
             List<TaskDTO> tasksForExport = taskService.getAllTasks();
@@ -362,3 +362,15 @@ public class AdminController {
 //        Files.write(imagePath, image.getBytes());
 //
 //        return imageName;  // Return the image name (or path) to save in the database
+
+
+//    @GetMapping("/tasks/filter")
+//    public List<TaskDTO> filterTasks(
+//            @RequestParam(required = false) List<String> priority,
+//            @RequestParam(required = false) String title,
+//            @RequestParam(required = false) List<TaskStatus> taskStatus,
+//            @RequestParam(required = false) String employeeName,
+//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
+//            @RequestParam(required = false) List<String> categoryNames) {
+//        return adminService.filterTasks(priority, title, dueDate, taskStatus, employeeName,categoryNames);
+//    }

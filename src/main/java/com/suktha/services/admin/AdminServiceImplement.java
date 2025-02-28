@@ -2,11 +2,10 @@ package com.suktha.services.admin;
 import com.suktha.Mappers.TaskMapper;
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
+import com.suktha.dtos.TaskLinkDTO;
 import com.suktha.dtos.UserDTO;
-import com.suktha.entity.Category;
-import com.suktha.entity.Comment;
-import com.suktha.entity.Task;
-import com.suktha.entity.User;
+import com.suktha.entity.*;
+import com.suktha.enums.TaskState;
 import com.suktha.enums.TaskStatus;
 import com.suktha.enums.UserRole;
 import com.suktha.repositories.CategoryRepository;
@@ -17,6 +16,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
@@ -47,6 +48,7 @@ public class AdminServiceImplement implements AdminService {
                 .collect(Collectors.toList());
     }
 
+
     public TaskDTO postTask(TaskDTO taskDto) {
         Optional<User> optionalUser = userRepository.findById(taskDto.getEmployeeId());
         if (optionalUser.isEmpty()) {
@@ -59,6 +61,7 @@ public class AdminServiceImplement implements AdminService {
         task.setDescription(taskDto.getDescription());
         task.setTaskStatus(TaskStatus.PENDING);
         task.setDueDate(taskDto.getDueDate());
+
         // Handle category selection or creation
         Category category = null;
         if (taskDto.getCategoryId() != null) {
@@ -71,7 +74,6 @@ public class AdminServiceImplement implements AdminService {
         } else {
             throw new RuntimeException("Category is required!");
         }
-
         task.setCategory(category);
 
         // Store the image name in the Task entity image column
@@ -81,11 +83,33 @@ public class AdminServiceImplement implements AdminService {
         if (taskDto.getVoiceName() != null) {
             task.setVoiceName((taskDto.getVoiceName()));
         }
+        task.setTaskLifecycle(TaskState.ACTIVE);
 
+        // Save links
+        List<TaskLink> taskLinks = new ArrayList<>();
+        if (taskDto.getLinks() != null && !taskDto.getLinks().isEmpty()) {
+            for (TaskLinkDTO linkDTO : taskDto.getLinks()) {
+                TaskLink taskLink = new TaskLink();
+                taskLink.setUrl(formatUrl(linkDTO.getUrl())); // Format URL
+                taskLink.setTask(task);
+                taskLinks.add(taskLink);
+            }
+        }
+        task.setLinks(taskLinks);
 
+        Task savedTask = taskRepository.save(task);
+        log.info("Task saved with {} links", taskLinks.size());
 
-        return taskRepository.save(task).getTaskDTO();
+        return savedTask.getTaskDTO();
     }
+
+    private String formatUrl(String url) {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "https://" + url; // Ensure URL has protocol
+        }
+        return url;
+    }
+
 
     //        // Set image and voice file names
 //        task.setImageName(taskDto.getImageName());
@@ -93,22 +117,33 @@ public class AdminServiceImplement implements AdminService {
     @Override
     public List<TaskDTO> getTask() {
         return taskRepository
-                .findAll()
+                .findByTaskLifecycleNot(TaskState.DELETED) // Exclude DELETED tasks
                 .stream()
                 .map(Task::getTaskDTO)//this is canvert entity to dto map
                 .collect(Collectors.toList());
     }
+
+    @Transactional
     @Override
     public TaskDTO getTaskByid(Long id) {
         Optional<Task> optionalTask = taskRepository.findById(id);
+        log.info("chack link in this task :"+optionalTask);
         return optionalTask
-                .map(Task::getTaskDTO) //entity to dto
+                .map(Task::getTaskDTO)//entity to dto
                 .orElse(null);
     }
 
     @Override
     public void deleteTask(Long id) {
-        taskRepository.deleteById(id);
+        // Find the task by ID or throw an exception if not found
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found with ID: " + id));
+
+        // Set the task status to DELETED
+        task.setTaskLifecycle(TaskState.DELETED);
+
+        // Save the updated task back to the database
+        taskRepository.save(task);
     }
 
     @Override
@@ -130,6 +165,7 @@ public class AdminServiceImplement implements AdminService {
             existingTask.setPriority(taskDto.getPriority());
             existingTask.setUser(optionalUser.get());
             existingTask.setDueDate(taskDto.getDueDate());
+
             TaskStatus taskStatus = mapStringToTaskStatus(String.valueOf(taskDto.getTaskStatus()));
             existingTask.setTaskStatus(taskStatus);
 
@@ -176,9 +212,18 @@ public class AdminServiceImplement implements AdminService {
                 .map(Comment::getCommentDto)//canavert entity to dto because i transfer data entity to controler geting
                 .collect(Collectors.toList());
     }
+
     public List<Category> getCategories() {
         return categoryRepository.findAll();
     }
+
+
+//    @Override
+//public List<String> getAllCategories() {
+//    return categoryRepository.findAll().stream()
+//            .map(Category::getName)
+//            .collect(Collectors.toList());
+//}
 
 //    public List<TaskDTO> filterTasks(List<String> priorities, String title, LocalDate dueDate, List<TaskStatus> taskStatuses, String employeeName, List<String> categoryNames) {
 //        List<Task> filteredTasks = this.taskRepository.findByFilters(priorities, title, dueDate, taskStatuses, employeeName,categoryNames);
@@ -199,12 +244,7 @@ public class AdminServiceImplement implements AdminService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public List<String> getAllCategories() {
-        return categoryRepository.findAll().stream()
-                .map(Category::getName)
-                .collect(Collectors.toList());
-    }
+
 
     private TaskStatus mapStringToTaskStatus(String taskStatus) {
         return switch (taskStatus) {
@@ -269,3 +309,4 @@ public class AdminServiceImplement implements AdminService {
     }
 
 }
+

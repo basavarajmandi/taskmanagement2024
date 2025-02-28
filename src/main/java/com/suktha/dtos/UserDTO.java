@@ -3,7 +3,6 @@ package com.suktha.dtos;
 import com.suktha.enums.UserRole;
 import lombok.*;
 
-
 @NoArgsConstructor
 @ToString
 @Data

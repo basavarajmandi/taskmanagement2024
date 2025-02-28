@@ -2,6 +2,7 @@ package com.suktha.controllers.employee;
 import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
 import com.suktha.enums.TaskStatus;
+import com.suktha.services.category.CategoryService;
 import com.suktha.services.employee.EmployeeService;
 import com.suktha.services.task.TaskService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +28,9 @@ public class EmployeeController {
 
     @Autowired
     private TaskService taskService;
+
+    @Autowired
+    private CategoryService categoryService;
 
     @GetMapping("/task/user/{userid}")
     public ResponseEntity<?> getTaskByUserId(@PathVariable() Long userid) {
@@ -78,16 +82,25 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.getCommentsByTask(taskId));
     }
 
+
+    @GetMapping("/filter/categories")
+    public ResponseEntity<List<String>> getAllCategories(){
+        List<String> categories = categoryService.getAllCategories();
+        return ResponseEntity.ok(categories);
+
+    }
+
     @GetMapping("/tasks/user/{userid}")
     public ResponseEntity<?> getFilteredTasksByUserIds(
             @PathVariable Long userid,
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) String priority,
-            @RequestParam(required = false) TaskStatus taskStatus,
-            @RequestParam(required = false) LocalDate dueDate) {
+            @RequestParam(required = false) List<String> priorities,
+            @RequestParam(required = false) List<TaskStatus>  taskStatuses,
+            @RequestParam(required = false) LocalDate dueDate,
+            @RequestParam(required = false) List<String> categoryNames) {
 
         log.info("Fetching tasks for user Id: " + userid);
-        List<TaskDTO> task = employeeService.getFilteredTasksByUserId(userid, title, priority, taskStatus, dueDate);
+        List<TaskDTO> task = employeeService.getFilteredTasksByUserId(userid, title, priorities, taskStatuses, dueDate,categoryNames);
 
         log.info("Tasks Fetched: " + task);
         return ResponseEntity.ok(task);

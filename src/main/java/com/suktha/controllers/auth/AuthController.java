@@ -27,16 +27,12 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private JwtUtil jwtUtil;
-
     @Autowired
     private UserService userService;
-
     @Autowired
     private AuthenticationManager authenticationManager;
 
@@ -47,12 +43,10 @@ public class AuthController {
             return ResponseEntity
                     .status(HttpStatus.NOT_ACCEPTABLE)
                     .body("user alredy exist with the provided email");
-
         UserDTO userDto = authService.signup(signupRequest);
         if (userDto == null)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User not created");
         return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
-
     }
 //    UserDTO userDto = authService.signup(signupRequest);
 //        if (userDto == null)
@@ -73,7 +67,6 @@ public class AuthController {
         //Load user details by email
         final UserDetails userDetails = userService.userDetailsService().loadUserByUsername(authenticationRequest.getEmail());
         Optional<User> optionalUser = userRepository.findFirstByEmail(authenticationRequest.getEmail());
-
         final String jwtToken = jwtUtil.generateToken(userDetails);
         AuthenticationResponse response = new AuthenticationResponse();
         // Generate JWT token if user is found then going
@@ -82,9 +75,7 @@ public class AuthController {
             response.setJwt(jwtToken);
             response.setUserRole(optionalUser.get().getUserRole());
             response.setUserId(optionalUser.get().getId());
-
         }
         return response;
     }
-
 }

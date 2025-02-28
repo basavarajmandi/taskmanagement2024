@@ -26,17 +26,14 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @EnableWebSecurity
 @EnableMethodSecurity
 public class WebSecurityConfiguration {
-
     @Autowired
     private UserService userService;
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity security) throws Exception {
         security
                 .csrf(AbstractHttpConfigurer::disable)
-
                 .authorizeHttpRequests(request ->
                         request.requestMatchers("/api/auth/**").permitAll()
                                 .requestMatchers("/api/admin/**").hasAnyAuthority(UserRole.ADMIN.name())
@@ -64,5 +61,4 @@ public class WebSecurityConfiguration {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
-
 }

@@ -23,13 +23,11 @@ public class Comment {
     @Column(name = "created_at")
     private Date createdAt;
 
-
     @Column(name = "image_name")
     private String imageName;
 
     @Column(name = "voice_name")
     private String voiceName;
-
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "task_id", nullable = false)

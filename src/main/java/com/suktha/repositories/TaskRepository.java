@@ -1,5 +1,6 @@
 package com.suktha.repositories;
 import com.suktha.entity.Task;
+import com.suktha.enums.TaskState;
 import com.suktha.enums.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +12,9 @@ import java.util.List;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
+
+
+    List<Task> findByTaskLifecycleNot(TaskState taskLifecycle);
 
     //this is for type of filters in below navbar have button
     List<Task> findByDueDate(LocalDate dueDate);
@@ -52,6 +56,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 //                             @Param("taskStatuses") List<TaskStatus> taskStatuses,
 //                             @Param("employeeName") String employeeName,
 //                             @Param("categoryNames") List<String> categoryNames);
+
 @Query("SELECT t FROM Task t JOIN t.user u JOIN t.category c WHERE " +
         "(:priorities IS NULL OR t.priority IN :priorities) AND " +
         "(:title IS NULL OR t.title LIKE CONCAT('%', :title, '%')) AND " +
@@ -67,18 +72,20 @@ List<Task> findByFilters(@Param("priorities") List<String> priorities,
                          @Param("categoryNames") List<String> categoryNames);
 
 
-    //it used for filter for employees card
-    @Query("SELECT t FROM Task t JOIN t.user u WHERE t.user.id = :userid " +
-            "AND (:title IS NULL OR t.title LIKE %:title%) " +
-            "AND (:priority IS NULL OR t.priority = :priority) " +
-            "AND (:taskStatus IS NULL OR t.taskStatus = :taskStatus) " +
-            "AND (:dueDate IS NULL OR t.dueDate = :dueDate)")
-    List<Task> findFilteredTasks(
-            @Param("userid") Long userid,
-            @Param("title") String title,
-            @Param("priority") String priority,
-            @Param("taskStatus") TaskStatus taskStatus,
-            @Param("dueDate") LocalDate dueDate);
+//this filter for employee
+@Query("SELECT t FROM Task t JOIN t.user u JOIN t.category c WHERE t.user.id = :userid " +
+        "AND (:title IS NULL OR LOWER(t.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
+        "AND (:priorities IS NULL OR t.priority IN :priorities) " +
+        "AND (:taskStatuses IS NULL OR t.taskStatus IN :taskStatuses) " +
+        "AND (:dueDate IS NULL OR t.dueDate = :dueDate)" +
+        "AND (:categoryNames IS NULL OR c.name IN :categoryNames)")
+List<Task> findFilteredTasks(
+        @Param("userid") Long userid,
+        @Param("title") String title,
+        @Param("priorities") List<String> priorities,
+        @Param("taskStatuses") List<TaskStatus> taskStatuses,
+        @Param("dueDate") LocalDate dueDate,
+        @Param("categoryNames") List<String> categoryNames);
 
     //used for chats
     @Query("SELECT t.priority, COUNT(t) FROM Task t GROUP BY t.priority")
@@ -100,3 +107,16 @@ List<Task> findByFilters(@Param("priorities") List<String> priorities,
 //    List<Task> findByTaskStatus(TaskStatus taskStatus);
 //    List<Task> findByPriority(String priority);
 //    List<Task> findByDueDate(LocalDate dueDate);
+
+//    //it used for filter for employees card
+//    @Query("SELECT t FROM Task t JOIN t.user u WHERE t.user.id = :userid " +
+//            "AND (:title IS NULL OR t.title LIKE %:title%) " +
+//            "AND (:priority IS NULL OR t.priority = :priority) " +
+//            "AND (:taskStatus IS NULL OR t.taskStatus = :taskStatus) " +
+//            "AND (:dueDate IS NULL OR t.dueDate = :dueDate)")
+//    List<Task> findFilteredTasks(
+//            @Param("userid") Long userid,
+//            @Param("title") String title,
+//            @Param("priority") String priority,
+//            @Param("taskStatus") TaskStatus taskStatus,
+//            @Param("dueDate") LocalDate dueDate);

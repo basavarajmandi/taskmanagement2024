@@ -23,5 +23,5 @@ public interface EmployeeService {
     List<CommentDTO> getCommentsByTask(Long taskId);
 
     // List<Task> getFilteredTasks(String title, TaskStatus taskStatus, String priority, LocalDate dueDate);
-    List<TaskDTO> getFilteredTasksByUserId(Long userid, String title, String priority, TaskStatus taskStatus, LocalDate dueDate);
+   List<TaskDTO> getFilteredTasksByUserId(Long userid, String title, List<String> priorities, List<TaskStatus> taskStatuses, LocalDate dueDate,List<String> categoryNames);
 }

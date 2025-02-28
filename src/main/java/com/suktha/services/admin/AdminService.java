@@ -41,8 +41,9 @@ public interface AdminService {
 
     // New method for filtering tasks
     List<TaskDTO> filterTasks(List<String>  priorities, String title, LocalDate dueDate, List<TaskStatus> taskStatuses, String employeeName,List<String> categoryNames);
-    //  Map<String, Object> getPaginatedTasks(int page, int size, String sortField, String sortDirection);
-    List<String> getAllCategories();
+
+   //  her it from CategoryService that so i commite this one
+    // List<String> getAllCategories();
 
     List<TaskDTO> getTasksDueToday();
 

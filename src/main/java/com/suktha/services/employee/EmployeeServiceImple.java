@@ -137,9 +137,9 @@ public class EmployeeServiceImple implements EmployeeService {
                 .collect(Collectors.toList());
     }
 
-    public List<TaskDTO> getFilteredTasksByUserId(Long userid, String title, String priority, TaskStatus taskStatus, LocalDate dueDate) {
+    public List<TaskDTO> getFilteredTasksByUserId(Long userid, String title, List<String> priorities, List<TaskStatus> taskStatuses, LocalDate dueDate, List<String> categoryNames) {
         // Get filtered tasks from the repository based on parameters
-        List<Task> tasks = taskRepository.findFilteredTasks(userid, title, priority, taskStatus, dueDate);
+        List<Task> tasks = taskRepository.findFilteredTasks(userid, title, priorities, taskStatuses, dueDate,categoryNames);
 
         // Convert Task entities to TaskDTOs
         List<TaskDTO> taskDTOs = tasks.stream()
