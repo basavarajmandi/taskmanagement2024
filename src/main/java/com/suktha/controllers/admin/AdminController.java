@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/admin")
@@ -64,6 +66,12 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getCategories());
     }
 
+    @GetMapping("/task/{id}")
+    public ResponseEntity<?> getTaskId(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getTaskByid(id));
+    }
+
+
     @PostMapping("/savetask")
     public ResponseEntity<?> postTask(
             @RequestParam("title") String title,
@@ -73,9 +81,10 @@ public class AdminController {
             @RequestParam("employeeId") Long employeeId,
             @RequestParam(value = "categoryId", required = false) Long categoryId,
             @RequestParam(value = "categoryName", required = false) String categoryName,
+            @RequestParam(value = "location", required = false) String location,
             @RequestParam(value = "image", required = false) MultipartFile image,
             @RequestParam(value = "voice", required = false) MultipartFile voiceFile,
-            @RequestParam(value = "links", required = false) List<String> links)throws IOException {
+            @RequestParam(value = "links", required = false) List<String> links) throws IOException {
 
         log.info("🔗 Links received: " + links);
         // Create TaskDTO and populate it with form data
@@ -86,7 +95,9 @@ public class AdminController {
         taskDto.setPriority(priority);
         taskDto.setEmployeeId(employeeId);
         taskDto.setCategoryId((categoryId));
+        taskDto.setLocation((location));
         taskDto.setCategoryName((categoryName));
+        log.info("📍 Location received: " + location); // Logging location
 
         // If an image is provided, store the image file name
         if (image != null && !image.isEmpty()) {
@@ -108,7 +119,7 @@ public class AdminController {
                         return linkDTO;
                     }).toList();
             taskDto.setLinks(linkDTOs);
-            log.info("links set in DTO :"+linkDTOs);
+            log.info("links set in DTO :" + linkDTOs);
         }
 
 
@@ -128,8 +139,26 @@ public class AdminController {
         String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
         Path filePath = directory.resolve(fileName);
         Files.write(filePath, file.getBytes());
-
         return fileName;
+    }
+
+    @PutMapping(value = "/task/{id}")
+    public ResponseEntity<?> UpdateTask(
+            @RequestPart("taskDto") TaskDTO taskDto,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @PathVariable Long id) {
+        log.info("Received update request for task {}: {}", id, taskDto);
+
+        if (taskDto.getDueDate() == null) {
+            log.warn("Due date is null in the request!");
+        }
+        TaskDTO updatedTaskDto = adminService.updateTask(taskDto, image, id);
+        log.info("running updateTask method in AdminControlleruPdatetask:" + updatedTaskDto);
+        if (updatedTaskDto == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(updatedTaskDto);
     }
 
     // Endpoint to get all categories with names only
@@ -143,23 +172,6 @@ public class AdminController {
     public ResponseEntity<?> deleteTask(@PathVariable Long id) {
         adminService.deleteTask(id);
         return ResponseEntity.ok(null);
-    }
-
-    @PutMapping("/task/{id}")
-    public ResponseEntity<?> UpdateTask(@RequestBody TaskDTO taskDto, @PathVariable Long id) {
-        log.info("Received update request for task {}: {}", id, taskDto);
-
-        if (taskDto.getDueDate() == null) {
-            log.warn("Due date is null in the request!");
-        }
-        TaskDTO updatedTaskDto = adminService.updateTask(taskDto, id);
-        log.info("running updateTask method in AdminControlleruPdatetask:" + updatedTaskDto);
-        if (updatedTaskDto == null) return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        return ResponseEntity.status(HttpStatus.OK).body(updatedTaskDto);
-    }
-    @GetMapping("/task/{id}")
-    public ResponseEntity<?> getTaskId(@PathVariable Long id) {
-        return ResponseEntity.ok(adminService.getTaskByid(id));
     }
 
     @GetMapping("/tasks/filter")
@@ -239,7 +251,6 @@ public class AdminController {
             TaskStatus taskStatus = TaskStatus.valueOf(status); //  and This will convert the status to TaskStatus enum
             return taskService.getTaskCountByStatus(taskStatus); //  than Call the service method
         } catch (IllegalArgumentException e) {
-
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid task status: " + status, e);
         }
     }
@@ -250,19 +261,18 @@ public class AdminController {
         return taskService.getTaskCountsByPriority();
     }
 
-
     @GetMapping("tasks/today")
-    public ResponseEntity<List<TaskDTO>> getTaskDueToday(){
+    public ResponseEntity<List<TaskDTO>> getTaskDueToday() {
         return ResponseEntity.ok(adminService.getTasksDueToday());
     }
 
     @GetMapping("tasks/yesterday")
-    public ResponseEntity<List<TaskDTO>> getTasksDueYesterday(){
+    public ResponseEntity<List<TaskDTO>> getTasksDueYesterday() {
         return ResponseEntity.ok(adminService.getTasksDueYesterday());
     }
 
     @GetMapping("tasks/this-week")
-    public ResponseEntity<List<TaskDTO>> getTasksDueThisWeek(){
+    public ResponseEntity<List<TaskDTO>> getTasksDueThisWeek() {
         return ResponseEntity.ok(adminService.getTasksDueThisWeek());
     }
 
@@ -322,14 +332,12 @@ public class AdminController {
             headers.add("Content-Disposition", "attachment; filename=all_tasks.xlsx");
             headers.add("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-
             return new ResponseEntity<>(excelFile, headers, HttpStatus.OK);
         } catch (IOException e) {
             // Handle error generating Excel file
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
-
 }
 //    @PostMapping("/savetask")
 //    public ResponseEntity<?> postTask(@RequestBody TaskDTO taskDto,  @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
@@ -362,7 +370,6 @@ public class AdminController {
 //        Files.write(imagePath, image.getBytes());
 //
 //        return imageName;  // Return the image name (or path) to save in the database
-
 
 //    @GetMapping("/tasks/filter")
 //    public List<TaskDTO> filterTasks(

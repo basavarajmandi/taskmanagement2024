@@ -1,5 +1,4 @@
 package com.suktha.controllers.file;
-
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -34,11 +33,13 @@ public class FileController {
     public ResponseEntity<Resource> getCommentVoice(@PathVariable String voiceName) throws IOException {
         return getFileResource("C:/uploaded_voices/employee/", voiceName, MediaType.APPLICATION_OCTET_STREAM);
     }
+
     private ResponseEntity<Resource> getFileResource(String directory, String fileName, MediaType mediaType) throws IOException {
         Path filePath = Paths.get(directory).resolve(fileName);
         if (!Files.exists(filePath)) {
             return ResponseEntity.notFound().build();
         }
+
         ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(filePath));
         return ResponseEntity.ok()
                 .contentType(mediaType)

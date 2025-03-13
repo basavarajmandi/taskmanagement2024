@@ -20,12 +20,16 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @Column(name = "name", length = 255)
     private String name;
+
     @Column(name = "email", length = 255, unique = true)
     private String email;
+
     @Column(name = "password")
     private String password;
+
     @Enumerated(EnumType.ORDINAL) // Maps to 'user_role' as an integer
     @Column(name = "user_role", columnDefinition = "TINYINT CHECK (user_role BETWEEN 0 AND 1)")
     private UserRole userRole;
@@ -48,18 +52,22 @@ public class User implements UserDetails {
     public String getUsername() {
         return email;
     }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
+
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
+
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
+
     @Override
     public boolean isEnabled() {
         return true;

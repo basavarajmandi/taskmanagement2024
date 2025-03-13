@@ -17,7 +17,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.*;
@@ -48,7 +54,6 @@ public class AdminServiceImplement implements AdminService {
                 .collect(Collectors.toList());
     }
 
-
     public TaskDTO postTask(TaskDTO taskDto) {
         Optional<User> optionalUser = userRepository.findById(taskDto.getEmployeeId());
         if (optionalUser.isEmpty()) {
@@ -61,6 +66,7 @@ public class AdminServiceImplement implements AdminService {
         task.setDescription(taskDto.getDescription());
         task.setTaskStatus(TaskStatus.PENDING);
         task.setDueDate(taskDto.getDueDate());
+        task.setLocation(taskDto.getLocation());
 
         // Handle category selection or creation
         Category category = null;
@@ -111,9 +117,6 @@ public class AdminServiceImplement implements AdminService {
     }
 
 
-    //        // Set image and voice file names
-//        task.setImageName(taskDto.getImageName());
-//        task.setVoiceName(taskDto.getVoiceName());
     @Override
     public List<TaskDTO> getTask() {
         return taskRepository
@@ -134,6 +137,63 @@ public class AdminServiceImplement implements AdminService {
     }
 
     @Override
+    public TaskDTO updateTask(TaskDTO taskDto, MultipartFile image, Long id) {
+        Optional<Task> optionalTask = taskRepository.findById(id);
+        log.info("running updatetask method in AdminServiceImplement clas :" + optionalTask);
+        Optional<User> optionalUser = userRepository.findById(taskDto.getEmployeeId());
+
+        if (optionalTask.isPresent() && optionalUser.isPresent()) {
+            Task existingTask = optionalTask.get();
+            existingTask.setTitle(taskDto.getTitle());
+            existingTask.setDescription(taskDto.getDescription());
+            existingTask.setPriority(taskDto.getPriority());
+            existingTask.setUser(optionalUser.get());
+            existingTask.setDueDate(taskDto.getDueDate());
+            TaskStatus taskStatus = mapStringToTaskStatus(String.valueOf(taskDto.getTaskStatus()));
+            existingTask.setTaskStatus(taskStatus);
+
+            // Handle category selection or creation
+            Category category = null;
+            if (taskDto.getCategoryId() != null) {
+                // Use existing category
+                Optional<Category> optionalCategory = categoryRepository.findById(taskDto.getCategoryId());
+                category = optionalCategory.orElse(null);
+            } else if (taskDto.getCategoryName() != null && !taskDto.getCategoryName().isEmpty()) {
+                // Create new category
+                category = new Category();
+                category.setName(taskDto.getCategoryName());
+                category = categoryRepository.save(category); // Save new category
+            }
+            if (image != null && !image.isEmpty()) {
+                try {
+//                    String imageName = UUID.randomUUID().toString() + "_" + image.getOriginalFilename();
+                    String imageName = System.currentTimeMillis() + "-" + image.getOriginalFilename();
+                    Path imagePath = Paths.get("C:/uploaded_images/" + imageName);
+
+                    // **Save new image first**
+                    Files.write(imagePath, image.getBytes());
+
+                    // **Delete old image only after new image is saved**
+                    if (existingTask.getImageName() != null) {
+                        Path oldImagePath = Paths.get("C:/uploaded_images/" + existingTask.getImageName());
+                        Files.deleteIfExists(oldImagePath);
+                    }
+
+                    existingTask.setImageName(imageName);
+                } catch (IOException e) {
+                    log.error("Error storing image: {}", e.getMessage());
+                    throw new RuntimeException("Failed to store image", e);
+                }
+            }
+            existingTask.setCategory(category);
+            return taskRepository.save(existingTask).getTaskDTO();
+
+        }
+        return null;
+    }
+
+
+    @Override
     public void deleteTask(Long id) {
         // Find the task by ID or throw an exception if not found
         Task task = taskRepository.findById(id)
@@ -150,44 +210,6 @@ public class AdminServiceImplement implements AdminService {
     public List<TaskDTO> searchTaskByTitle(String title) {
         return taskRepository.findAllBytitleContaining(title).stream().map(Task::getTaskDTO).collect(Collectors.toList());
     }
-
-    @Override
-    public TaskDTO updateTask(TaskDTO taskDto, Long id) {
-        Optional<Task> optionalTask = taskRepository.findById(id);
-        log.info("running updatetask method in AdminServiceImplement clas :" + optionalTask);
-        Optional<User> optionalUser = userRepository.findById(taskDto.getEmployeeId());
-        // Optional<Category> optionalCategory = categoryRepository.findById(taskDto.getCategoryId());
-        // Fetch category
-        if (optionalTask.isPresent() && optionalUser.isPresent()) {
-            Task existingTask = optionalTask.get();
-            existingTask.setTitle(taskDto.getTitle());
-            existingTask.setDescription(taskDto.getDescription());
-            existingTask.setPriority(taskDto.getPriority());
-            existingTask.setUser(optionalUser.get());
-            existingTask.setDueDate(taskDto.getDueDate());
-
-            TaskStatus taskStatus = mapStringToTaskStatus(String.valueOf(taskDto.getTaskStatus()));
-            existingTask.setTaskStatus(taskStatus);
-
-            // Handle category selection or creation
-            Category category = null;
-            if (taskDto.getCategoryId() != null) {
-                // Use existing category
-                Optional<Category> optionalCategory = categoryRepository.findById(taskDto.getCategoryId());
-                category = optionalCategory.orElse(null);
-            } else if (taskDto.getCategoryName() != null && !taskDto.getCategoryName().isEmpty()) {
-                // Create new category
-                category = new Category();
-                category.setName(taskDto.getCategoryName());
-                category = categoryRepository.save(category); // Save new category
-            }
-            existingTask.setCategory(category); // Set category before saving
-            // existingTask.setCategory((optionalCategory.get())); //update category
-            return taskRepository.save(existingTask).getTaskDTO();
-        }
-        return null;
-    }
-
     @Override
     public CommentDTO createComment(Long taskId, Long postedBy, String content) {
         Optional<Task> optionalTask = taskRepository.findById(taskId);
@@ -200,7 +222,6 @@ public class AdminServiceImplement implements AdminService {
             comment.setUser(optionalUser.get());
             return commentRepository.save(comment).getCommentDto();
         }
-
         throw new EntityNotFoundException("task or user not found");
     }
 
@@ -217,22 +238,6 @@ public class AdminServiceImplement implements AdminService {
         return categoryRepository.findAll();
     }
 
-
-//    @Override
-//public List<String> getAllCategories() {
-//    return categoryRepository.findAll().stream()
-//            .map(Category::getName)
-//            .collect(Collectors.toList());
-//}
-
-//    public List<TaskDTO> filterTasks(List<String> priorities, String title, LocalDate dueDate, List<TaskStatus> taskStatuses, String employeeName, List<String> categoryNames) {
-//        List<Task> filteredTasks = this.taskRepository.findByFilters(priorities, title, dueDate, taskStatuses, employeeName,categoryNames);
-//        log.info("running filterTasks method in AdminServiceImplement class:" + filteredTasks);
-//        return filteredTasks.stream()
-//                .map(Task::getTaskDTO) // Convert each Task entity to TaskDTO
-//                .collect(Collectors.toList());
-//    }
-
     public List<TaskDTO> filterTasks(List<String> priorities, String title, LocalDate dueDate, List<TaskStatus> taskStatuses, String employeeName, List<String> categoryNames) {
         if (priorities != null && priorities.isEmpty()) priorities = null;
         if (taskStatuses != null && taskStatuses.isEmpty()) taskStatuses = null;
@@ -243,9 +248,6 @@ public class AdminServiceImplement implements AdminService {
                 .map(Task::getTaskDTO)
                 .collect(Collectors.toList());
     }
-
-
-
     private TaskStatus mapStringToTaskStatus(String taskStatus) {
         return switch (taskStatus) {
             case "PENDING" -> TaskStatus.PENDING;
@@ -307,6 +309,4 @@ public class AdminServiceImplement implements AdminService {
         List<Task> tasks = taskRepository.findByDueDateBetween(startDate, endDate);
         return TaskMapper.entitytoDTOList(tasks);
     }
-
 }
-

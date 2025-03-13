@@ -18,7 +18,6 @@ public class GlobalCorsConfg {
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
-
         //  Allow headers for images
         configuration.setExposedHeaders(Arrays.asList("Content-Type", "Content-Disposition"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

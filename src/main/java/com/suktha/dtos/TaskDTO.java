@@ -30,6 +30,7 @@ public class TaskDTO {
     private String voiceName;
     private String categoryName;
     private Long categoryId;
+    private String location;
     private LocalDateTime assignedDate;
     private TaskState taskLifecycle;
     private List<TaskLinkDTO> links;

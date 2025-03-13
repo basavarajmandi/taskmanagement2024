@@ -9,6 +9,7 @@ import com.suktha.entity.Task;
 import com.suktha.entity.User;
 import com.suktha.enums.TaskStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 
 import java.time.LocalDate;
@@ -33,7 +34,8 @@ public interface AdminService {
 
     List<TaskDTO> searchTaskByTitle(String title);
 
-    TaskDTO updateTask(TaskDTO taskDto, Long id);
+    TaskDTO updateTask(TaskDTO taskDto, MultipartFile image, Long id);
+
 
     CommentDTO createComment(Long taskId, Long postedBy, String content);
 

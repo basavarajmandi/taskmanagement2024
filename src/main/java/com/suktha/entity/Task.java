@@ -25,34 +25,47 @@ import java.util.stream.Collectors;
 @Data
 @Table(name = "task")
 public class Task {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
+
     @Column(name = "title", length = 255)
     private String title;
+
     @Column(name = "due_date")
     private LocalDate dueDate;
+
     @Column(name = "priority", length = 255)
     private String priority;
+
     @Column(name = "description", length = 255)
     private String description;
-    @Enumerated(EnumType.ORDINAL) // Maps to 'task_status' as an integer
+
+    @Enumerated(EnumType.ORDINAL)
+    // Maps to 'task_status' as an integer
     @Column(name = "task_status", columnDefinition = "TINYINT CHECK (task_status BETWEEN 0 AND 4)")
     private TaskStatus taskStatus;
+
     // New field to store image as byte array
     // Store the image file name instead of the byte array
     @Column(name = "image_name")
-    private String imageName;  // Store image name or path
+    private String imageName;
+
+    // Store image name or path
     @Column(name = "voice_name")
     private String voiceName;
+
+    @Column(name = "location", length = 300)
+    private String location;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
+
     @JsonIgnore
     private User user;
-
     @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
@@ -65,8 +78,7 @@ public class Task {
     @Column(name = "taskLifecycle", nullable = false)
     private TaskState taskLifecycle;
 
-
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL,  orphanRemoval = true,fetch = FetchType.EAGER )
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference  // This is the forward side of the reference
     private List<TaskLink> links = new ArrayList<>();
 
@@ -87,6 +99,7 @@ public class Task {
         taskDTO.setCategoryName(category.getName());
         taskDTO.setAssignedDate(assignedDate);
         taskDTO.setTaskLifecycle(taskLifecycle);
+        taskDTO.setLocation(location);
 
         // Convert List<TaskLink> to List<TaskLinkDTO>
         if (this.links != null && !this.links.isEmpty()) {
@@ -100,7 +113,6 @@ public class Task {
 
         return taskDTO;
     }
-
 
     @Override
     public String toString() {
@@ -116,8 +128,4 @@ public class Task {
                 ", linksCount=" + (links != null ? links.size() : 0) +  // Avoid listing all links
                 '}';
     }
-
-
-
-
 }
