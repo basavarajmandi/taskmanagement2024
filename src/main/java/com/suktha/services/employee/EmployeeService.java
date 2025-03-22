@@ -8,8 +8,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface EmployeeService {
+
+
+
+
+
+    Map<String, Object> getPaginatedTasksByUserId(Long userId, int page, int size, String sortField, String sortDirection);
+
 
     List<TaskDTO> getTasksByUserId(Long id);
     //List<TaskDTO> getTasksByUserId();

@@ -2,16 +2,22 @@ package com.suktha.repositories;
 import com.suktha.entity.Task;
 import com.suktha.enums.TaskState;
 import com.suktha.enums.TaskStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
+
+Page<Task> findAllByUserId(Long userId, Pageable pageable);
 
 
     List<Task> findByTaskLifecycleNot(TaskState taskLifecycle);
@@ -103,10 +109,6 @@ List<Task> findFilteredTasks(
 
 }
 
-//    List<Task> findByTitleContaining(String title);
-//    List<Task> findByTaskStatus(TaskStatus taskStatus);
-//    List<Task> findByPriority(String priority);
-//    List<Task> findByDueDate(LocalDate dueDate);
 
 //    //it used for filter for employees card
 //    @Query("SELECT t FROM Task t JOIN t.user u WHERE t.user.id = :userid " +

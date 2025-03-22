@@ -34,7 +34,7 @@ public interface AdminService {
 
     List<TaskDTO> searchTaskByTitle(String title);
 
-    TaskDTO updateTask(TaskDTO taskDto, MultipartFile image, Long id);
+    TaskDTO updateTask(TaskDTO taskDto, MultipartFile image, MultipartFile voiceFile, Long id);
 
 
     CommentDTO createComment(Long taskId, Long postedBy, String content);

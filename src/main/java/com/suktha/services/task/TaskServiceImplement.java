@@ -115,7 +115,6 @@ public class TaskServiceImplement implements TaskService {
         return tasks.stream().map(Task:: getTaskDTO).collect(Collectors.toList());
     }
 
-
     public Map<String, Object> getPaginatedTasks(int page, int size, String sortField, String sortDirection) {
 
         // Create sorting and paging object

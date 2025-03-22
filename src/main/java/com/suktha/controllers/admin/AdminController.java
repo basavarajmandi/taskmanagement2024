@@ -20,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -71,6 +70,30 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getTaskByid(id));
     }
 
+    @PutMapping(value = "/task/{id}")
+    public ResponseEntity<?> UpdateTask(
+            @RequestPart("taskDto") TaskDTO taskDto,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "voice", required = false) MultipartFile voiceFile,
+            @PathVariable Long id) {
+        log.info("Received update request for task {}: {}", id, taskDto);
+        if (voiceFile != null && !voiceFile.isEmpty()) {
+            log.info("Received voice file: {}", voiceFile.getOriginalFilename());
+        } else {
+            log.warn("No voice file received!");
+        }
+
+        if (taskDto.getDueDate() == null) {
+            log.warn("Due date is null in the request!");
+        }
+        TaskDTO updatedTaskDto = adminService.updateTask(taskDto, image ,voiceFile,id);
+        log.info("running updateTask method in AdminControlleruPdatetask:" + updatedTaskDto);
+        if (updatedTaskDto == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(updatedTaskDto);
+    }
 
     @PostMapping("/savetask")
     public ResponseEntity<?> postTask(
@@ -142,24 +165,7 @@ public class AdminController {
         return fileName;
     }
 
-    @PutMapping(value = "/task/{id}")
-    public ResponseEntity<?> UpdateTask(
-            @RequestPart("taskDto") TaskDTO taskDto,
-            @RequestParam(value = "image", required = false) MultipartFile image,
-            @PathVariable Long id) {
-        log.info("Received update request for task {}: {}", id, taskDto);
 
-        if (taskDto.getDueDate() == null) {
-            log.warn("Due date is null in the request!");
-        }
-        TaskDTO updatedTaskDto = adminService.updateTask(taskDto, image, id);
-        log.info("running updateTask method in AdminControlleruPdatetask:" + updatedTaskDto);
-        if (updatedTaskDto == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body(updatedTaskDto);
-    }
 
     // Endpoint to get all categories with names only
     @GetMapping("/filter/categories")
@@ -339,45 +345,3 @@ public class AdminController {
         }
     }
 }
-//    @PostMapping("/savetask")
-//    public ResponseEntity<?> postTask(@RequestBody TaskDTO taskDto,  @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
-//        // Check if an image is provided and set it in TaskDTO
-//        if (image != null && !image.isEmpty()) {
-//            taskDto.setImageData(image.getBytes());
-//        }
-//        TaskDTO createdtask = adminService.postTask(taskDto);
-//        log.info("running  adminService method in Admincontroller by creaedTask:" + createdtask);
-//        if (createdtask == null)
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-//        return ResponseEntity.status(HttpStatus.CREATED).body(createdtask);
-//
-//    }
-//    private String saveImageToFileSystem(MultipartFile image) throws IOException {
-//        Path imagesDirectory = Paths.get("C:/uploaded_images");
-//
-//        // Check if the directory exists, and if not, create it
-//        if (!Files.exists(imagesDirectory)) {
-//            Files.createDirectories(imagesDirectory);
-//        }
-//
-//        // Create a unique file name for the image
-//        String imageName = System.currentTimeMillis() + "-" + image.getOriginalFilename();
-//
-//        // Define the file path to store the image
-//        Path imagePath = imagesDirectory.resolve(imageName);
-//
-//        // Save the image to the file system
-//        Files.write(imagePath, image.getBytes());
-//
-//        return imageName;  // Return the image name (or path) to save in the database
-
-//    @GetMapping("/tasks/filter")
-//    public List<TaskDTO> filterTasks(
-//            @RequestParam(required = false) List<String> priority,
-//            @RequestParam(required = false) String title,
-//            @RequestParam(required = false) List<TaskStatus> taskStatus,
-//            @RequestParam(required = false) String employeeName,
-//            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
-//            @RequestParam(required = false) List<String> categoryNames) {
-//        return adminService.filterTasks(priority, title, dueDate, taskStatus, employeeName,categoryNames);
-//    }

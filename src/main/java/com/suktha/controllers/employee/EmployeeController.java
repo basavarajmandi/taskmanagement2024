@@ -32,6 +32,18 @@ public class EmployeeController {
     @Autowired
     private CategoryService categoryService;
 
+    @GetMapping("/tasks/paginated/user/{userId}")
+    public ResponseEntity<Map<String, Object>> getPaginatedTasksByUserId(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(defaultValue = "id") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDirection) {
+
+        Map<String, Object> response = employeeService.getPaginatedTasksByUserId(userId, page, size, sortField, sortDirection);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/task/user/{userid}")
     public ResponseEntity<?> getTaskByUserId(@PathVariable() Long userid) {
         log.info("Fetching tasks for user Id:" + userid);
