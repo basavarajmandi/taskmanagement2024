@@ -63,9 +63,9 @@ public class Task {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
-
     @JsonIgnore
     private User user;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false, cascade = CascadeType.PERSIST)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
@@ -81,6 +81,13 @@ public class Task {
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference  // This is the forward side of the reference
     private List<TaskLink> links = new ArrayList<>();
+
+    // **New Field for Keep in Loop Users**
+    @ElementCollection
+    @CollectionTable(name = "task_keep_in_loop_users", joinColumns = @JoinColumn(name = "task_id"))
+    @Column(name = "user_id")
+    private List<Long> keepInLoopUsers = new ArrayList<>();
+
 
     public TaskDTO getTaskDTO() {
         // canvart taskentity to taskDto method this one encapsulation

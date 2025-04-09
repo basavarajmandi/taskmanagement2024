@@ -101,6 +101,11 @@ public class AdminServiceImplement implements AdminService {
         }
         task.setLinks(taskLinks);
 
+        // **Handle Keep in Loop Users**
+        if (taskDto.getKeepInLoopUsers() != null) {
+            task.setKeepInLoopUsers(taskDto.getKeepInLoopUsers());
+        }
+
         Task savedTask = taskRepository.save(task);
         log.info("Task saved with {} links", taskLinks.size());
 

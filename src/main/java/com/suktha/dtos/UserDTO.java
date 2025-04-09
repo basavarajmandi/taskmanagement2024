@@ -6,6 +6,8 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 @Data
+@Getter
+@Setter
 public class UserDTO {
     private Long id;
     private String name;

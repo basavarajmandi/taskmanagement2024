@@ -11,7 +11,8 @@ import java.nio.file.Paths;
 
 @RestController
 @RequestMapping("/api/files")
-@CrossOrigin(origins = "http://localhost:4200")
+//@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 public class FileController {
 
     private static final String IMAGE_DIRECTORY = "C:/uploaded_images/";

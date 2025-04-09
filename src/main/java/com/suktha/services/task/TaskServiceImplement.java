@@ -1,8 +1,12 @@
 package com.suktha.services.task;
 import com.suktha.dtos.TaskDTO;
+import com.suktha.dtos.TaskLinkDTO;
+import com.suktha.dtos.UserDTO;
 import com.suktha.entity.Task;
+import com.suktha.entity.User;
 import com.suktha.enums.TaskStatus;
 import com.suktha.repositories.TaskRepository;
+import com.suktha.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,6 +24,9 @@ public class TaskServiceImplement implements TaskService {
 
     @Autowired
     private TaskRepository taskRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public long getOverdueTaskCount() {
         return taskRepository.countOverdueTasks();
@@ -160,9 +167,6 @@ public class TaskServiceImplement implements TaskService {
             return taskMap;
         }).collect(Collectors.toList());
     }
-
-
-
 
 
 }

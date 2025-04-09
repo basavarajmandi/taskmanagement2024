@@ -1,19 +1,15 @@
 package com.suktha.services.auth;
-
 import com.suktha.dtos.SignupRequest;
 import com.suktha.dtos.UserDTO;
 import com.suktha.entity.User;
 import com.suktha.enums.UserRole;
 import com.suktha.repositories.UserRepository;
 import jakarta.annotation.PostConstruct;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
-
 @Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -48,7 +44,6 @@ public class AuthServiceImpl implements AuthService {
         return userRepository.save(user).getUserDTO();
 
     }
-
 
     //i hange Boolean to boolean
     @Override

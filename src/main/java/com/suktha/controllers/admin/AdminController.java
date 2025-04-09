@@ -3,9 +3,7 @@ import com.suktha.dtos.CommentDTO;
 import com.suktha.dtos.TaskDTO;
 import com.suktha.dtos.TaskLinkDTO;
 import com.suktha.entity.Category;
-import com.suktha.entity.Task;
 import com.suktha.enums.TaskStatus;
-import com.suktha.repositories.CategoryRepository;
 import com.suktha.services.admin.AdminService;
 import com.suktha.services.category.CategoryService;
 import com.suktha.services.exportToExcel.ExportToExcelService;
@@ -15,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,7 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 public class AdminController {
 
     @Autowired
@@ -70,6 +67,80 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getTaskByid(id));
     }
 
+    @PostMapping("/savetask")
+    public ResponseEntity<?> postTask(
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dueDate,
+            @RequestParam("priority") String priority,
+            @RequestParam("employeeId") Long employeeId,
+            @RequestParam(value = "categoryId", required = false) Long categoryId,
+            @RequestParam(value = "categoryName", required = false) String categoryName,
+            @RequestParam(value = "location", required = false) String location,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "voice", required = false) MultipartFile voiceFile,
+            @RequestParam(value = "links", required = false) List<String> links,
+            @RequestParam(value = "keepInLoopUsers",required = false) List<Long> keepInLoopUsers) throws IOException {
+
+        log.info("🔗 Links received: " + links);
+        log.info("👥 Keep in Loop Users received: " + keepInLoopUsers);
+        // Create TaskDTO and populate it with form data
+        TaskDTO taskDto = new TaskDTO();
+        taskDto.setTitle(title);
+        taskDto.setDescription(description);
+        taskDto.setDueDate(dueDate); // No need to parse manuallyhe dueDate is a LocalDate
+        taskDto.setPriority(priority);
+        taskDto.setEmployeeId(employeeId);
+        taskDto.setCategoryId((categoryId));
+        taskDto.setLocation((location));
+        taskDto.setCategoryName((categoryName));
+
+        log.info("📍 Location received: " + location); // Logging location
+        // If an image is provided, store the image file name
+        if (image != null && !image.isEmpty()) {
+            String imageName = saveFileToFileSystem(image, "C:/uploaded_images/");
+            taskDto.setImageName(imageName);  // Set the image name in the DTO
+        }
+        // Save voice file
+        if (voiceFile != null && !voiceFile.isEmpty()) {
+            String voiceName = saveFileToFileSystem(voiceFile, "C:/uploaded_voices/");
+            taskDto.setVoiceName(voiceName);
+        }
+        // Handle links
+        if (links != null && !links.isEmpty()) { //  Ensure the links list is not null
+            List<TaskLinkDTO> linkDTOs = links.stream()
+                    .map(url -> {
+                        TaskLinkDTO linkDTO = new TaskLinkDTO();
+                        linkDTO.setUrl(url);
+                        return linkDTO;
+                    }).toList();
+            taskDto.setLinks(linkDTOs);
+            log.info("links set in DTO :" + linkDTOs);
+        }
+        // Handle Keep in Loop Users
+        if (keepInLoopUsers != null && !keepInLoopUsers.isEmpty()) {
+            taskDto.setKeepInLoopUsers(keepInLoopUsers);
+        }
+
+
+        TaskDTO createdTask = adminService.postTask(taskDto);
+        if (createdTask == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+    }
+
+    private String saveFileToFileSystem(MultipartFile file, String directoryPath) throws IOException {
+        Path directory = Paths.get(directoryPath);
+        if (!Files.exists(directory)) {
+            Files.createDirectories(directory);
+        }
+        String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
+        Path filePath = directory.resolve(fileName);
+        Files.write(filePath, file.getBytes());
+        return fileName;
+    }
+
     @PutMapping(value = "/task/{id}")
     public ResponseEntity<?> UpdateTask(
             @RequestPart("taskDto") TaskDTO taskDto,
@@ -94,77 +165,6 @@ public class AdminController {
 
         return ResponseEntity.status(HttpStatus.OK).body(updatedTaskDto);
     }
-
-    @PostMapping("/savetask")
-    public ResponseEntity<?> postTask(
-            @RequestParam("title") String title,
-            @RequestParam("description") String description,
-            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate dueDate,
-            @RequestParam("priority") String priority,
-            @RequestParam("employeeId") Long employeeId,
-            @RequestParam(value = "categoryId", required = false) Long categoryId,
-            @RequestParam(value = "categoryName", required = false) String categoryName,
-            @RequestParam(value = "location", required = false) String location,
-            @RequestParam(value = "image", required = false) MultipartFile image,
-            @RequestParam(value = "voice", required = false) MultipartFile voiceFile,
-            @RequestParam(value = "links", required = false) List<String> links) throws IOException {
-
-        log.info("🔗 Links received: " + links);
-        // Create TaskDTO and populate it with form data
-        TaskDTO taskDto = new TaskDTO();
-        taskDto.setTitle(title);
-        taskDto.setDescription(description);
-        taskDto.setDueDate(dueDate); // No need to parse manuallyhe dueDate is a LocalDate
-        taskDto.setPriority(priority);
-        taskDto.setEmployeeId(employeeId);
-        taskDto.setCategoryId((categoryId));
-        taskDto.setLocation((location));
-        taskDto.setCategoryName((categoryName));
-        log.info("📍 Location received: " + location); // Logging location
-
-        // If an image is provided, store the image file name
-        if (image != null && !image.isEmpty()) {
-            String imageName = saveFileToFileSystem(image, "C:/uploaded_images/");
-            taskDto.setImageName(imageName);  // Set the image name in the DTO
-        }
-
-        // Save voice file
-        if (voiceFile != null && !voiceFile.isEmpty()) {
-            String voiceName = saveFileToFileSystem(voiceFile, "C:/uploaded_voices/");
-            taskDto.setVoiceName(voiceName);
-        }
-        // Handle links
-        if (links != null && !links.isEmpty()) { //  Ensure the links list is not null
-            List<TaskLinkDTO> linkDTOs = links.stream()
-                    .map(url -> {
-                        TaskLinkDTO linkDTO = new TaskLinkDTO();
-                        linkDTO.setUrl(url);
-                        return linkDTO;
-                    }).toList();
-            taskDto.setLinks(linkDTOs);
-            log.info("links set in DTO :" + linkDTOs);
-        }
-
-
-        TaskDTO createdTask = adminService.postTask(taskDto);
-
-        if (createdTask == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
-    }
-
-    private String saveFileToFileSystem(MultipartFile file, String directoryPath) throws IOException {
-        Path directory = Paths.get(directoryPath);
-        if (!Files.exists(directory)) {
-            Files.createDirectories(directory);
-        }
-        String fileName = System.currentTimeMillis() + "-" + file.getOriginalFilename();
-        Path filePath = directory.resolve(fileName);
-        Files.write(filePath, file.getBytes());
-        return fileName;
-    }
-
 
 
     // Endpoint to get all categories with names only
@@ -197,6 +197,7 @@ public class AdminController {
 
     @GetMapping("/tasks/paginated")
     public ResponseEntity<Map<String, Object>> getTasksWithPagination(
+
             @RequestParam(defaultValue = "0") int page, // Default page index
             @RequestParam(defaultValue = "5") int size, // Default page size
             @RequestParam(defaultValue = "id") String sortField, // Default sort field

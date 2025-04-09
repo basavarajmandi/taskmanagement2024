@@ -36,7 +36,6 @@ public class TaskMapper {
         return tasks.stream().map(TaskMapper::toDTO).collect(Collectors.toList());
     }
 
-
 //    // Convert TaskDTO back to Task entity
 //    public static Task toEntity(TaskDTO taskDTO) {
 //        if (taskDTO == null) {
