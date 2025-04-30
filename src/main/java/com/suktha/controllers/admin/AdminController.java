@@ -1,9 +1,12 @@
 package com.suktha.controllers.admin;
 import com.suktha.dtos.CommentDTO;
+import com.suktha.dtos.KeepInLoopUserDTO;
 import com.suktha.dtos.TaskDTO;
 import com.suktha.dtos.TaskLinkDTO;
 import com.suktha.entity.Category;
+import com.suktha.entity.User;
 import com.suktha.enums.TaskStatus;
+import com.suktha.repositories.UserRepository;
 import com.suktha.services.admin.AdminService;
 import com.suktha.services.category.CategoryService;
 import com.suktha.services.exportToExcel.ExportToExcelService;
@@ -22,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,10 +49,24 @@ public class AdminController {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping("/users")
     public ResponseEntity<?> getUsers() {
         log.info("running getUserMethod in AdminController");
         return ResponseEntity.ok(adminService.getUsers());
+    }
+
+
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        User user = adminService.getUserById(id);
+        if (user != null) {
+            return ResponseEntity.ok(user);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @GetMapping("/tasks")
@@ -117,9 +135,20 @@ public class AdminController {
             taskDto.setLinks(linkDTOs);
             log.info("links set in DTO :" + linkDTOs);
         }
-        // Handle Keep in Loop Users
+//        // Handle Keep in Loop Users
+//        if (keepInLoopUsers != null && !keepInLoopUsers.isEmpty()) {
+//            taskDto.setKeepInLoopUsers(keepInLoopUsers);
+//        }
+
         if (keepInLoopUsers != null && !keepInLoopUsers.isEmpty()) {
-            taskDto.setKeepInLoopUsers(keepInLoopUsers);
+            List<KeepInLoopUserDTO> keepInLoopUserDTOs = keepInLoopUsers.stream()
+                    .map(userId -> {
+                        User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+                        return new KeepInLoopUserDTO(userId, user.getName());
+                    })
+                    .collect(Collectors.toList());
+            taskDto.setKeepInLoopUsers(keepInLoopUserDTOs);
         }
 
 
@@ -224,6 +253,7 @@ public class AdminController {
     @GetMapping("task/search/{title}")
     public ResponseEntity<?> searchTaskbyTitle(@PathVariable String title) {
         return ResponseEntity.ok(adminService.searchTaskByTitle(title));
+
     }
 
     @GetMapping("/tasks/overdue")

@@ -21,6 +21,8 @@ import java.util.Map;
 public interface AdminService {
 
     List<UserDTO> getUsers();
+    
+    
 
     TaskDTO postTask(TaskDTO taskDto);
 
@@ -53,10 +55,11 @@ public interface AdminService {
 
     List<TaskDTO> getTasksDueThisWeek();
 
-
     List<TaskDTO> getTasksDueLastWeek();
     List<TaskDTO> getTasksDueThisMonth();
     List<TaskDTO> getTasksDueLastMonth();
     List<TaskDTO> getTasksDueThisYear();
     List<TaskDTO> getTasksByCustomDateRange(LocalDate startDate, LocalDate endDate);
+
+    User getUserById(Long id);
 }

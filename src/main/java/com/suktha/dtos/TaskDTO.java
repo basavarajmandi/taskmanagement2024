@@ -1,5 +1,4 @@
 package com.suktha.dtos;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.suktha.enums.TaskState;
 import com.suktha.enums.TaskStatus;
@@ -7,7 +6,6 @@ import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-
 @NoArgsConstructor
 @ToString
 @Data
@@ -34,5 +32,5 @@ public class TaskDTO {
     private TaskState taskLifecycle;
     private List<TaskLinkDTO> links;
     // **New Field for Keep in Loop Users**
-    private List<Long> keepInLoopUsers;
+    private List<KeepInLoopUserDTO> keepInLoopUsers;
 }

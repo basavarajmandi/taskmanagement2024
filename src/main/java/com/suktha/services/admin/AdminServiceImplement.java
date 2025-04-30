@@ -101,24 +101,27 @@ public class AdminServiceImplement implements AdminService {
         }
         task.setLinks(taskLinks);
 
+//        // **Handle Keep in Loop Users**
+//        if (taskDto.getKeepInLoopUsers() != null) {
+//            task.setKeepInLoopUsers(taskDto.getKeepInLoopUsers());
+//        }
         // **Handle Keep in Loop Users**
         if (taskDto.getKeepInLoopUsers() != null) {
-            task.setKeepInLoopUsers(taskDto.getKeepInLoopUsers());
+            List<User> keepInLoopUsers = taskDto.getKeepInLoopUsers().stream()
+                    .map(keepInLoopUserDTO -> {
+                        return userRepository.findById(keepInLoopUserDTO.getId())
+                                .orElseThrow(() -> new RuntimeException("User not found with ID: " + keepInLoopUserDTO.getId()));
+                    })
+                    .collect(Collectors.toList());
+            task.setKeepInLoopUsers(keepInLoopUsers);
         }
+
 
         Task savedTask = taskRepository.save(task);
         log.info("Task saved with {} links", taskLinks.size());
 
         return savedTask.getTaskDTO();
     }
-
-    private String formatUrl(String url) {
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            url = "https://" + url; // Ensure URL has protocol
-        }
-        return url;
-    }
-
 
     @Override
     public List<TaskDTO> getTask() {
@@ -137,6 +140,12 @@ public class AdminServiceImplement implements AdminService {
         return optionalTask
                 .map(Task::getTaskDTO)//entity to dto
                 .orElse(null);
+    }
+    private String formatUrl(String url) {
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "https://" + url; // Ensure URL has protocol
+        }
+        return url;
     }
 
     @Override
@@ -367,5 +376,10 @@ public class AdminServiceImplement implements AdminService {
     public List<TaskDTO> getTasksByCustomDateRange(LocalDate startDate, LocalDate endDate) {
         List<Task> tasks = taskRepository.findByDueDateBetween(startDate, endDate);
         return TaskMapper.entitytoDTOList(tasks);
+    }
+
+    @Override
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElse(null);
     }
 }

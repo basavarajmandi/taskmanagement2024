@@ -2,6 +2,7 @@ package com.suktha.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.suktha.dtos.KeepInLoopUserDTO;
 import com.suktha.dtos.TaskDTO;
 import com.suktha.dtos.TaskLinkDTO;
 import com.suktha.enums.TaskState;
@@ -82,11 +83,18 @@ public class Task {
     @JsonManagedReference  // This is the forward side of the reference
     private List<TaskLink> links = new ArrayList<>();
 
-    // **New Field for Keep in Loop Users**
-    @ElementCollection
-    @CollectionTable(name = "task_keep_in_loop_users", joinColumns = @JoinColumn(name = "task_id"))
-    @Column(name = "user_id")
-    private List<Long> keepInLoopUsers = new ArrayList<>();
+    //    // **New Field for Keep in Loop Users**
+//    @ElementCollection
+//    @CollectionTable(name = "task_keep_in_loop_users", joinColumns = @JoinColumn(name = "task_id"))
+//    @Column(name = "user_id")
+//    private List<Long> keepInLoopUsers = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "task_keep_in_loop_users",
+            joinColumns = @JoinColumn(name = "task_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> keepInLoopUsers = new ArrayList<>();
 
 
     public TaskDTO getTaskDTO() {
@@ -108,6 +116,9 @@ public class Task {
         taskDTO.setTaskLifecycle(taskLifecycle);
         taskDTO.setLocation(location);
 
+//        // ✅ Add this line for keepInLoopUsers
+//        taskDTO.setKeepInLoopUsers(keepInLoopUsers);
+
         // Convert List<TaskLink> to List<TaskLinkDTO>
         if (this.links != null && !this.links.isEmpty()) {
             List<TaskLinkDTO> linkDTOs = this.links.stream()
@@ -116,6 +127,16 @@ public class Task {
             taskDTO.setLinks(linkDTOs);
         } else {
             taskDTO.setLinks(new ArrayList<>()); // Ensure empty list instead of null
+        }
+
+// ✅ Convert keepInLoopUsers (List<User>) to List<KeepInLoopUserDTO>
+        if (keepInLoopUsers != null && !keepInLoopUsers.isEmpty()) {
+            List<KeepInLoopUserDTO> loopUserDTOs = keepInLoopUsers.stream()
+                    .map(user -> new KeepInLoopUserDTO(user.getId(), user.getName()))
+                    .collect(Collectors.toList());
+            taskDTO.setKeepInLoopUsers(loopUserDTOs);
+        } else {
+            taskDTO.setKeepInLoopUsers(new ArrayList<>());
         }
 
         return taskDTO;
